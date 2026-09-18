@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-standalone/
+coverage/
+*.log
+
+# Python analysis harness
+analysis/.venv/
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+.idea/
+*.swp
