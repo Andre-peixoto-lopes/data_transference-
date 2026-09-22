@@ -37,4 +37,3 @@ npm run typecheck
 - Protocolo de fio: [docs/protocol.md](docs/protocol.md)
 - Decisões de arquitetura: [docs/decisions/](docs/decisions/)
 - Diário de aprendizado contínuo: [docs/DEVLOG.md](docs/DEVLOG.md)
-# data_transference-

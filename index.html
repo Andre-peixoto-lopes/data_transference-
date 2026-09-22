@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Farol — demo loopback</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        font: 15px/1.5 system-ui, sans-serif;
+        background: #0e1116;
+        color: #e6edf3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem 1rem 4rem;
+      }
+      h1 { margin: 0; font-size: 1.4rem; }
+      p.lead { margin: 0; max-width: 46rem; text-align: center; color: #9aa7b4; }
+      .controls { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+      button {
+        background: #2f81f7; color: white; border: 0; border-radius: 8px;
+        padding: 0.55rem 1.1rem; font-size: 1rem; cursor: pointer;
+      }
+      button:disabled { opacity: 0.5; cursor: default; }
+      .stage { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+      figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+      figcaption { color: #9aa7b4; font-size: 0.85rem; }
+      canvas { background: white; border-radius: 6px; image-rendering: pixelated; }
+      progress { width: 320px; height: 14px; }
+      pre { margin: 0; color: #9aa7b4; }
+      #result { min-height: 2rem; text-align: center; }
+      #result a { color: #2f81f7; }
+      .hub { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+      .hub a { color: #2f81f7; }
+    </style>
+  </head>
+  <body>
+    <h1>Farol — transferência óptica</h1>
+    <nav class="hub">
+      <a href="/send/">Transmitir (tela)</a>
+      <a href="/receive/">Receber (câmera)</a>
+    </nav>
+    <p class="lead">
+      O transmissor vira o arquivo em padrões ópticos animados; o decodificador lê
+      os próprios pixels de volta (simulando a câmera), reconstrói e verifica o
+      SHA-256. Sem rede — o dado viaja como imagem.
+    </p>
+    <div class="controls">
+      <input id="file" type="file" />
+      <button id="start">Transmitir</button>
+    </div>
+    <div class="stage">
+      <figure>
+        <figcaption>Transmissor (tela)</figcaption>
+        <canvas id="screen"></canvas>
+      </figure>
+      <div>
+        <p><progress id="prog" max="1" value="0"></progress></p>
+        <pre id="status">pronto.</pre>
+      </div>
+    </div>
+    <div id="result"></div>
+    <script type="module" src="/app/demo/main.ts"></script>
+  </body>
+</html>

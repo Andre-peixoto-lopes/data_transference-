@@ -13,5 +13,5 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true
   },
-  "include": ["app", "tests"]
+  "include": ["app", "tests", "e2e"]
 }

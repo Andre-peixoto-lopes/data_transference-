@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Farol — transmissor</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; font: 15px/1.5 system-ui, sans-serif; background: #0e1116; color: #e6edf3;
+        display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem 1rem;
+      }
+      h1 { margin: 0; font-size: 1.3rem; }
+      p, pre { margin: 0; color: #9aa7b4; text-align: center; }
+      a { color: #2f81f7; }
+      .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+      button { background: #2f81f7; color: #fff; border: 0; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 1rem; cursor: pointer; }
+      canvas.screen { width: min(90vmin, 520px); height: auto; image-rendering: pixelated; background: #fff; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <h1>Farol — transmissor (tela)</h1>
+    <p>Escolha um arquivo e aponte a câmera (página <a href="/receive/">Receber</a>) para esta tela.</p>
+    <div class="controls">
+      <input id="file" type="file" />
+      <button id="start">Transmitir</button>
+    </div>
+    <canvas id="screen" class="screen"></canvas>
+    <pre id="status">pronto.</pre>
+    <script type="module" src="/app/send/main.ts"></script>
+  </body>
+</html>

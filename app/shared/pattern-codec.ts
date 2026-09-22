@@ -9,7 +9,7 @@
 export interface PatternImage {
   readonly width: number;
   readonly height: number;
-  readonly rgba: Uint8ClampedArray; // row-major RGBA, 4 bytes per pixel
+  readonly rgba: Uint8ClampedArray<ArrayBuffer>; // row-major RGBA, 4 bytes per pixel
 }
 
 export interface DecodedSymbol {
