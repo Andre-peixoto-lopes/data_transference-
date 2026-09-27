@@ -58,6 +58,7 @@ export interface ReceiverProgress {
   readonly progress: number;
   readonly framesDecoded: number;
   readonly k: number;
+  readonly totalLen: number;
 }
 
 /**
@@ -69,23 +70,29 @@ export class Receiver {
   private decoder: LtDecoder | null = null;
   private identity: string | null = null;
   private k = 0;
+  private totalLen = 0;
   private framesDecoded = 0;
 
-  constructor(private readonly codec: PatternCodec) {}
+  constructor(private readonly codec?: PatternCodec) {}
 
-  /** Offers one captured image; returns true once the payload is complete. */
+  /** Offers one captured image, decoding it with the codec (used by tests and the loopback demo). */
   offer(image: PatternImage): boolean {
+    if (!this.codec) throw new Error("offer(image) needs a codec; use offerBytes with an external decoder");
     const decoded = this.codec.decode(image);
     if (decoded.kind !== "symbol") return this.isComplete;
+    return this.offerBytes(decoded.bytes);
+  }
 
+  /** Offers frame bytes already decoded by an external reader (e.g. zxing-wasm on the camera page). */
+  offerBytes(frameBytes: Uint8Array): boolean {
     let header: FrameHeader;
     try {
-      header = parseHeader(decoded.bytes);
+      header = parseHeader(frameBytes);
     } catch {
       return this.isComplete; // not a Farol frame
     }
 
-    const symbol = decoded.bytes.subarray(FRAME_HEADER_LENGTH, FRAME_HEADER_LENGTH + header.blockLen);
+    const symbol = frameBytes.subarray(FRAME_HEADER_LENGTH, FRAME_HEADER_LENGTH + header.blockLen);
     if (symbol.length !== header.blockLen) return this.isComplete;
 
     this.lockOnto(header);
@@ -99,6 +106,7 @@ export class Receiver {
     if (identity === this.identity) return;
     this.identity = identity;
     this.k = header.k;
+    this.totalLen = header.totalLen;
     this.framesDecoded = 0;
     this.decoder = new LtDecoder({ k: header.k, blockLen: header.blockLen, totalLen: header.totalLen });
   }
@@ -113,6 +121,7 @@ export class Receiver {
       progress: this.decoder?.progress ?? 0,
       framesDecoded: this.framesDecoded,
       k: this.k,
+      totalLen: this.totalLen,
     };
   }
 

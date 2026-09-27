@@ -13,9 +13,13 @@
       h1 { margin: 0; font-size: 1.3rem; }
       p, pre { margin: 0; color: #9aa7b4; text-align: center; }
       a { color: #2f81f7; }
-      .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+      .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; align-items: center; }
+      .controls label { display: inline-flex; align-items: center; gap: 0.35rem; color: #9aa7b4; }
+      .controls input[type="number"], .controls select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 0.4rem 0.5rem; font: inherit; }
+      .controls input[type="number"] { width: 3.5rem; }
       button { background: #2f81f7; color: #fff; border: 0; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 1rem; cursor: pointer; }
       canvas.screen { width: min(90vmin, 520px); height: auto; image-rendering: pixelated; background: #fff; border-radius: 6px; }
+      canvas.screen:fullscreen { width: 100vh; height: 100vh; max-width: 100vw; border-radius: 0; }
     </style>
   </head>
   <body>
@@ -23,7 +27,26 @@
     <p>Escolha um arquivo e aponte a câmera (página <a href="/receive/">Receber</a>) para esta tela.</p>
     <div class="controls">
       <input id="file" type="file" />
+      <label>fps <input id="fps" type="number" min="1" max="30" value="24" /></label>
+      <label>densidade
+        <select id="density">
+          <option value="271">271 B (QR v10, robusto)</option>
+          <option value="520">520 B (QR v15)</option>
+          <option value="858">858 B (QR v20)</option>
+          <option value="1465" selected>1465 B (QR v27, decimen)</option>
+          <option value="2071">2071 B (QR v33, denso)</option>
+        </select>
+      </label>
+      <label>ECC
+        <select id="ecc">
+          <option value="L" selected>L (rápido)</option>
+          <option value="M">M</option>
+          <option value="Q">Q</option>
+          <option value="H">H (robusto)</option>
+        </select>
+      </label>
       <button id="start">Transmitir</button>
+      <button id="fullscreen">⛶ Tela cheia</button>
     </div>
     <canvas id="screen" class="screen"></canvas>
     <pre id="status">pronto.</pre>

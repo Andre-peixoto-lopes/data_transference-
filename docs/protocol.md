@@ -58,8 +58,8 @@ bit-exata ou nada.
 ## Tabela de `patternId`
 | id | codec | status |
 |---:|---|---|
-| 1 | QR (baseline) | planejado |
-| 2 | grade de cores | planejado |
-| 3 | grade binária densa | planejado |
+| 1 | QR (baseline) | implementado — zxing-wasm no receptor, jsQR nos testes |
+| 2 | grade de cores | planejado (direção libcimbar) |
+| 3 | grade P&B (`GridCodec`) | implementado (loopback; sem homografia p/ câmera) |
 
-Ids são estáveis e não podem colidir (ver skill `adding-a-pattern-codec`).
+Ids são estáveis e não podem colidir — um novo `PatternCodec` escolhe o próximo id livre.

@@ -3,6 +3,36 @@
 Registro do que foi feito, o que deu certo e o que deu errado. Entradas do mais
 recente para o mais antigo.
 
+## 2026-09-27 — Salto de throughput: zxing-wasm + parâmetros do decimen
+
+### Feito
+- **Decoder trocado para zxing-wasm** (WASM, rápido/robusto) no `/receive/`, como o
+  decimen. `jsQR` fica como decoder de referência dos testes. `Receiver.offerBytes()`
+  separa "bytes decodificados → fountain" do decode por imagem. `.wasm` servido do
+  próprio origin (offline). Ver `docs/decisions/0005`.
+- **Defaults do decimen**: 24 fps, 1465 B/frame (QR v27), ECC L. Densidades no
+  `/send/` mapeadas a versões de QR (v10..v33).
+- **Qualidade óptica no `/receive/`**: seleção automática da melhor câmera traseira
+  (maior sensor) com override manual + persistência; foco contínuo via
+  `applyConstraints`; captura 1080p; decode a 1280px; captura por
+  `requestVideoFrameCallback`; telemetria ao vivo (câmera→leitura fps, hit%, KB/s, ETA).
+- **Tela cheia no `/send/`**: QR físico grande → foco fácil de longe.
+- Build valida o `.wasm` como asset local. Typecheck limpo, 22 testes verdes.
+
+### Aprendizados
+- O gargalo real de throughput é o **decoder**, não a densidade: jsQR (JS, main
+  thread) é lento; zxing-wasm decodifica muito mais frames/s. É o que separa ~KB/s
+  de dezenas/centenas de KB/s (decimen mede 418 KB/s desktop→phone).
+- Overhead do fountain é **~1.15x** com LT bem feito, não 1.5-1.7x.
+- Câmera wide de flagship (S23) não faz macro: o embaçado vem de perto demais —
+  distância + QR grande resolvem mais que qualquer ajuste de software.
+- libcimbar mostra o teto: sair do QR P&B para **cor** é o próximo salto de densidade.
+
+### Próximo
+- Decode em **Web Workers** (pool) — evolução direta do decimen.
+- `PatternCodec` de **cor** (id=2) com homografia própria — direção libcimbar.
+- Medir BER/goodput reais no par Galaxy Book → S23 e alimentar o harness Python.
+
 ## 2026-09-22 (tarde) — Codec QR + páginas send/receive com câmera
 
 ### Feito

@@ -12,11 +12,12 @@ export interface QrCodecOptions {
 }
 
 /**
- * QR PatternCodec (baseline). node-qrcode renders byte-mode frames; jsQR reads
- * them. jsQR locates the finder patterns, corrects perspective and samples the
- * grid, so `decode` works directly on a raw camera frame — not only a canonical
- * one. QR's built-in Reed-Solomon is the intra-frame FEC; the fountain handles
- * erasure across frames, so error correction stays at level L by default.
+ * QR PatternCodec (baseline). `node-qrcode` renders byte-mode frames. `decode`
+ * uses jsQR as a self-contained reference decoder — it runs off-DOM, so the unit
+ * and e2e tests read frames back synchronously without WASM. The camera page
+ * decodes with zxing-wasm instead (faster and more robust); both read the same
+ * byte-mode QR. QR's built-in Reed-Solomon is the intra-frame FEC; the fountain
+ * handles erasure across frames, so error correction stays at level L by default.
  */
 export class QrCodec implements PatternCodec {
   readonly id = 1;
@@ -27,7 +28,7 @@ export class QrCodec implements PatternCodec {
   private readonly ecc: ErrorCorrectionLevel;
 
   constructor(options: QrCodecOptions = {}) {
-    this.capacity = options.bytesPerFrame ?? 96;
+    this.capacity = options.bytesPerFrame ?? 1465;
     this.scale = options.scale ?? 6;
     this.margin = options.margin ?? 4;
     this.ecc = options.errorCorrectionLevel ?? "L";

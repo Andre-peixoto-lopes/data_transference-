@@ -14,6 +14,7 @@
       p, pre { margin: 0; color: #9aa7b4; text-align: center; }
       a { color: #2f81f7; }
       button { background: #2f81f7; color: #fff; border: 0; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 1rem; cursor: pointer; }
+      select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 8px; padding: 0.5rem; font: inherit; max-width: min(90vmin, 480px); }
       video.camera { width: min(90vmin, 480px); height: auto; background: #000; border-radius: 6px; }
       progress { width: min(90vmin, 480px); height: 14px; }
       #result { text-align: center; }
@@ -24,6 +25,7 @@
     <h1>Farol — receptor (câmera)</h1>
     <p>Aponte para a tela transmissora (página <a href="/send/">Transmitir</a>).</p>
     <button id="start">Iniciar câmera</button>
+    <select id="cameraSelect" hidden aria-label="Câmera"></select>
     <video id="camera" class="camera" playsinline muted></video>
     <progress id="prog" max="1" value="0"></progress>
     <pre id="status">toque em "Iniciar câmera".</pre>
