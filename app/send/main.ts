@@ -1,6 +1,7 @@
 import { FRAME_HEADER_LENGTH } from "../shared/protocol.js";
 import type { FileContainer } from "../shared/container.js";
 import { type ErrorCorrectionLevel, QrCodec } from "../shared/patterns/qr-codec.js";
+import { createPrng } from "../shared/prng.js";
 import { Transmitter } from "../shared/session.js";
 
 const fileInput = document.querySelector<HTMLInputElement>("#file")!;
@@ -8,12 +9,21 @@ const fpsInput = document.querySelector<HTMLInputElement>("#fps")!;
 const densitySelect = document.querySelector<HTMLSelectElement>("#density")!;
 const eccSelect = document.querySelector<HTMLSelectElement>("#ecc")!;
 const startButton = document.querySelector<HTMLButtonElement>("#start")!;
+const benchmarkButton = document.querySelector<HTMLButtonElement>("#benchmark")!;
 const fullscreenButton = document.querySelector<HTMLButtonElement>("#fullscreen")!;
 const screen = document.querySelector<HTMLCanvasElement>("#screen")!;
 const statusBox = document.querySelector<HTMLPreElement>("#status")!;
 const context = screen.getContext("2d")!;
 
 let timer: number | undefined;
+
+/** Deterministic 1 MB payload — the canonical, reproducible benchmark input. */
+function benchmarkFile(): FileContainer {
+  const payload = new Uint8Array(1024 * 1024);
+  const prng = createPrng(0xfa401234);
+  for (let i = 0; i < payload.length; i++) payload[i] = Math.floor(prng() * 256);
+  return { filename: "benchmark-1mb.bin", mediaType: "application/octet-stream", payload };
+}
 
 async function readSelectedFile(): Promise<FileContainer> {
   const file = fileInput.files?.[0];
@@ -28,14 +38,14 @@ async function readSelectedFile(): Promise<FileContainer> {
   };
 }
 
-async function start(): Promise<void> {
+async function start(override?: FileContainer): Promise<void> {
   if (timer !== undefined) window.clearInterval(timer);
 
   const fps = Math.min(30, Math.max(1, Number(fpsInput.value) || 15));
   const bytesPerFrame = Number(densitySelect.value);
   const codec = new QrCodec({ bytesPerFrame, errorCorrectionLevel: eccSelect.value as ErrorCorrectionLevel });
 
-  const file = await readSelectedFile();
+  const file = override ?? (await readSelectedFile());
   const transmitter = await Transmitter.forFile(codec, file);
 
   const first = transmitter.render(0);
@@ -57,6 +67,7 @@ async function start(): Promise<void> {
 }
 
 startButton.addEventListener("click", () => void start());
+benchmarkButton.addEventListener("click", () => void start(benchmarkFile()));
 
 // Fullscreen makes each QR module physically larger, so a phone camera locks
 // focus from a comfortable distance and reads denser frames.

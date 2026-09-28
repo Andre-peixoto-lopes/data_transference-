@@ -1,16 +1,15 @@
-import { prepareZXingModule, readBarcodes, type ReaderOptions } from "zxing-wasm/reader";
-import zxingWasmUrl from "zxing-wasm/reader/zxing_reader.wasm?url";
 import { toArrayBufferBytes } from "../shared/bytes.js";
-import { Receiver, type ReceiverProgress } from "../shared/session.js";
+import { FRAME_HEADER_LENGTH } from "../shared/protocol.js";
+import { Receiver } from "../shared/session.js";
+import { downloadReport, type TransferReport } from "../shared/telemetry.js";
+import type { DecodeRequest, DecodeResponse } from "./decode-worker.js";
 
-// Decode with zxing-wasm (WASM, fast, robust) as decimen does; jsQR stays as the
-// codec's reference decoder for tests. Serve the wasm from our own origin (offline-safe).
-const zxingReady = prepareZXingModule({ overrides: { locateFile: () => zxingWasmUrl }, fireImmediately: true });
-const READER_OPTIONS: ReaderOptions = { formats: ["QRCode"], tryHarder: false, maxNumberOfSymbols: 1 };
 const MAX_DECODE_WIDTH = 1280; // downscale camera frames before decode; higher resolves denser QRs
+const POOL_SIZE = Math.max(1, Math.min(4, navigator.hardwareConcurrency || 2)); // parallel decoders
 
 const startButton = document.querySelector<HTMLButtonElement>("#start")!;
 const cameraSelect = document.querySelector<HTMLSelectElement>("#cameraSelect")!;
+const reportButton = document.querySelector<HTMLButtonElement>("#report")!;
 const video = document.querySelector<HTMLVideoElement>("#camera")!;
 const progress = document.querySelector<HTMLProgressElement>("#prog")!;
 const statusBox = document.querySelector<HTMLPreElement>("#status")!;
@@ -18,16 +17,34 @@ const resultBox = document.querySelector<HTMLDivElement>("#result")!;
 
 const work = document.createElement("canvas");
 const workContext = work.getContext("2d", { willReadFrequently: true })!;
-const receiver = new Receiver();
+let receiver = new Receiver();
 let streaming = false;
 let currentStream: MediaStream | null = null;
 const CAMERA_STORAGE_KEY = "farol.cameraId";
 
-// Live telemetry, reported ~2x/second so the optical link can be tuned by eye.
-let winFrames = 0; // camera frames processed in the current window
-let winSymbols = 0; // frames that carried a valid Farol symbol (in-focus + decoded)
+// Decode worker pool: zxing-wasm off the main thread, several frames in parallel.
+const workers: Worker[] = [];
+const workerBusy: boolean[] = [];
+let nextFrameId = 0;
+
+// Telemetry: whole-transfer counters (report) + a sliding window (live status line).
+let totalCaptured = 0;
+let lockedAt = 0;
+let startedAtISO = "";
+let cameraResolution = "?";
+let winFrames = 0;
+let winSymbols = 0;
 let winStart = 0;
-let sessionStart = 0;
+
+function initPool(): void {
+  if (workers.length > 0) return;
+  for (let i = 0; i < POOL_SIZE; i++) {
+    const worker = new Worker(new URL("./decode-worker.ts", import.meta.url), { type: "module" });
+    worker.addEventListener("message", (event: MessageEvent<DecodeResponse>) => onDecoded(i, event.data));
+    workers.push(worker);
+    workerBusy.push(false);
+  }
+}
 
 /** Best-effort: request continuous autofocus and high resolution when exposed. */
 async function tuneCamera(track: MediaStreamTrack): Promise<string[]> {
@@ -124,16 +141,25 @@ async function start(deviceId?: string): Promise<void> {
     if (settings.deviceId) localStorage.setItem(CAMERA_STORAGE_KEY, settings.deviceId);
     await populateCameras(settings.deviceId ?? deviceId);
 
-    statusBox.textContent = "carregando decodificador…";
-    await zxingReady; // load the decoder wasm before the first frame
+    initPool();
 
-    streaming = true;
+    // Fresh receiver + counters, so every run is a clean measurement.
+    receiver = new Receiver();
+    totalCaptured = 0;
+    lockedAt = 0;
+    startedAtISO = "";
     winFrames = 0;
     winSymbols = 0;
     winStart = 0;
-    sessionStart = 0;
+    workerBusy.fill(false);
+    cameraResolution = `${settings.width ?? "?"}x${settings.height ?? "?"}`;
+    resultBox.innerHTML = "";
+    progress.value = 0;
+    reportButton.hidden = false;
+
+    streaming = true;
     statusBox.textContent =
-      `câmera ${settings.width ?? "?"}×${settings.height ?? "?"}${tuned.length ? " • " + tuned.join(", ") : ""} — ` +
+      `câmera ${cameraResolution}${tuned.length ? " • " + tuned.join(", ") : ""} • ${POOL_SIZE} workers — ` +
       "aponte para a tela e mantenha ~20-30 cm (afaste se embaçar).";
     scheduleNext();
   } catch (error) {
@@ -150,46 +176,50 @@ function scheduleNext(): void {
   else requestAnimationFrame(tick);
 }
 
+/** Captures a frame and hands it to a free worker; skips capture under backpressure. */
 function tick(): void {
   if (!streaming) return;
-  if (video.readyState >= 2 && video.videoWidth > 0) {
+  const free = workerBusy.indexOf(false);
+  if (free !== -1 && video.readyState >= 2 && video.videoWidth > 0) {
     const scale = Math.min(1, MAX_DECODE_WIDTH / video.videoWidth);
     work.width = Math.round(video.videoWidth * scale);
     work.height = Math.round(video.videoHeight * scale);
     workContext.drawImage(video, 0, 0, work.width, work.height);
     const frame = workContext.getImageData(0, 0, work.width, work.height);
 
+    totalCaptured++;
     winFrames++;
-    void decodeFrame(frame);
-    return; // decodeFrame schedules the next tick when it settles
+    workerBusy[free] = true;
+    const request: DecodeRequest = { id: nextFrameId++, width: frame.width, height: frame.height, buffer: frame.data.buffer };
+    workers[free].postMessage(request, [frame.data.buffer]);
   }
   scheduleNext();
 }
 
-/** Decodes one captured frame with zxing-wasm and feeds any Farol symbol to the fountain. */
-async function decodeFrame(frame: ImageData): Promise<void> {
-  try {
-    const results = await readBarcodes(frame, READER_OPTIONS);
-    const hit = results.find((r) => r.isValid && r.bytes.length > 0);
-    if (hit) {
-      const before = receiver.progress().framesDecoded;
-      const complete = receiver.offerBytes(hit.bytes);
-      if (receiver.progress().framesDecoded > before) winSymbols++;
-      progress.value = receiver.progress().progress;
-      if (complete) {
-        void finish();
-        return;
-      }
+/** Handles a worker's decode result: feeds the fountain and updates telemetry. */
+function onDecoded(workerIndex: number, response: DecodeResponse): void {
+  workerBusy[workerIndex] = false;
+  if (!streaming) return;
+  if (response.bytes) {
+    const before = receiver.progress().framesDecoded;
+    const complete = receiver.offerBytes(response.bytes);
+    const info = receiver.progress();
+    if (info.framesDecoded > before) winSymbols++;
+    if (info.locked && lockedAt === 0) {
+      lockedAt = performance.now();
+      startedAtISO = new Date().toISOString();
     }
-  } catch {
-    /* undecodable frame — the fountain absorbs the loss */
+    progress.value = info.progress;
+    if (complete) {
+      void finish();
+      return;
+    }
   }
-  report(receiver.progress());
-  scheduleNext();
+  report();
 }
 
-/** Turns raw counters into camera fps, read rate, effective KB/s and ETA. */
-function report(info: ReceiverProgress): void {
+/** Updates the live status line ~2x/second (camera fps, read rate, KB/s, ETA). */
+function report(): void {
   const now = performance.now();
   if (winStart === 0) winStart = now;
   const dt = (now - winStart) / 1000;
@@ -202,15 +232,14 @@ function report(info: ReceiverProgress): void {
   winSymbols = 0;
   winStart = now;
 
+  const info = receiver.progress();
   if (!info.locked) {
-    statusBox.textContent =
-      `procurando frames Farol… • câmera ${capFps.toFixed(0)} fps • leitura ${hitRate.toFixed(0)}%`;
+    statusBox.textContent = `procurando frames Farol… • câmera ${capFps.toFixed(0)} fps • leitura ${hitRate.toFixed(0)}%`;
     return;
   }
 
-  if (sessionStart === 0) sessionStart = now; // time throughput from the moment the stream locks
   const bytesDone = info.progress * info.totalLen;
-  const rate = bytesDone / Math.max((now - sessionStart) / 1000, 0.001);
+  const rate = lockedAt > 0 ? bytesDone / Math.max((now - lockedAt) / 1000, 0.001) : 0;
   const eta = rate > 0 ? (info.totalLen - bytesDone) / rate : Infinity;
   statusBox.textContent =
     `recebendo ${Math.round(info.progress * 100)}% • K=${info.k} • ` +
@@ -218,18 +247,56 @@ function report(info: ReceiverProgress): void {
     `${(rate / 1024).toFixed(1)} KB/s • ETA ${Number.isFinite(eta) ? Math.ceil(eta) + "s" : "—"}`;
 }
 
+/** Snapshots the current transfer state into a report — works mid-transfer too. */
+function buildReport(fileName: string, fileBytes: number, complete: boolean): TransferReport {
+  const info = receiver.progress();
+  const durationSeconds = lockedAt > 0 ? (performance.now() - lockedAt) / 1000 : 0;
+  return {
+    startedAt: startedAtISO || new Date().toISOString(),
+    durationSeconds,
+    complete,
+    progress: info.progress,
+    fileName,
+    fileBytes,
+    k: info.k,
+    framesCaptured: totalCaptured,
+    framesDecoded: info.framesDecoded,
+    overhead: info.framesDecoded / Math.max(1, info.k),
+    hitRate: info.framesDecoded / Math.max(1, totalCaptured),
+    captureFps: totalCaptured / Math.max(0.001, durationSeconds),
+    goodputKBs: (info.progress * info.totalLen) / 1024 / Math.max(0.001, durationSeconds),
+    bytesPerFrame: info.blockLen > 0 ? info.blockLen + FRAME_HEADER_LENGTH : 0,
+    decodeWorkers: POOL_SIZE,
+    cameraResolution,
+    userAgent: navigator.userAgent,
+  };
+}
+
 async function finish(): Promise<void> {
   streaming = false;
   stopStream();
 
   const file = await receiver.result();
+  const transferReport = buildReport(file.filename, file.payload.length, true);
+  downloadReport(transferReport); // auto-download the report on completion
+
   const url = URL.createObjectURL(new Blob([toArrayBufferBytes(file.payload)], { type: file.mediaType }));
   resultBox.innerHTML =
     `<p><strong>SHA-256 OK</strong> — arquivo reconstruído bit-a-bit.</p>` +
-    `<p>${file.filename} • ${file.payload.length} bytes</p>` +
-    `<a href="${url}" download="${file.filename}">Baixar arquivo recebido</a>`;
-  statusBox.textContent = "concluído.";
+    `<p>${file.filename} • ${file.payload.length} bytes • <strong>${transferReport.goodputKBs.toFixed(1)} KB/s</strong> • ` +
+    `hit ${(transferReport.hitRate * 100).toFixed(0)}% • overhead ${transferReport.overhead.toFixed(2)}x • ${POOL_SIZE} workers</p>` +
+    `<a href="${url}" download="${file.filename}">Baixar arquivo</a> · ` +
+    `<a href="#" id="dlreport">Baixar relatório (JSON)</a>`;
+  document.querySelector<HTMLAnchorElement>("#dlreport")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    downloadReport(transferReport);
+  });
+  statusBox.textContent = `concluído • ${transferReport.goodputKBs.toFixed(1)} KB/s • ${transferReport.durationSeconds.toFixed(1)}s`;
 }
 
 startButton.addEventListener("click", () => void start());
 cameraSelect.addEventListener("change", () => void start(cameraSelect.value));
+reportButton.addEventListener("click", () => {
+  const info = receiver.progress();
+  downloadReport(buildReport(info.progress >= 1 ? "farol" : "(parcial)", 0, info.progress >= 1));
+});

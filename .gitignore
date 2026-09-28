@@ -6,8 +6,10 @@ coverage/
 
 # Python analysis harness
 analysis/.venv/
+analysis/reports/plots/
 __pycache__/
 *.pyc
+*.egg-info/
 
 # OS / editor
 .DS_Store

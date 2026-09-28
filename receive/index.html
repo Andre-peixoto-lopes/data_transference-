@@ -2,29 +2,43 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Farol — receptor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Farol — receber</title>
     <style>
       :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
       body {
-        margin: 0; font: 15px/1.5 system-ui, sans-serif; background: #0e1116; color: #e6edf3;
-        display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem 1rem;
+        margin: 0; min-height: 100dvh; font: 16px/1.5 system-ui, sans-serif;
+        background: #0e1116; color: #e6edf3;
+        display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+        padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
       }
-      h1 { margin: 0; font-size: 1.3rem; }
+      header { width: 100%; max-width: 560px; display: flex; align-items: center; gap: 0.75rem; }
+      header a { color: #2f81f7; text-decoration: none; font-size: 0.95rem; }
+      h1 { margin: 0; font-size: 1.2rem; }
       p, pre { margin: 0; color: #9aa7b4; text-align: center; }
+      pre { white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; }
       a { color: #2f81f7; }
-      button { background: #2f81f7; color: #fff; border: 0; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 1rem; cursor: pointer; }
-      select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 8px; padding: 0.5rem; font: inherit; max-width: min(90vmin, 480px); }
-      video.camera { width: min(90vmin, 480px); height: auto; background: #000; border-radius: 6px; }
-      progress { width: min(90vmin, 480px); height: 14px; }
-      #result { text-align: center; }
-      #result a { color: #2f81f7; }
+      button { background: #2f81f7; color: #fff; border: 0; border-radius: 10px; padding: 0.7rem 1.2rem; font-size: 1rem; min-height: 44px; cursor: pointer; }
+      button:disabled { opacity: 0.5; }
+      select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 10px; padding: 0.6rem; font: inherit; width: 100%; max-width: 560px; min-height: 44px; }
+      .row { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 560px; }
+      .row button { flex: 1 1 auto; }
+      video.camera { width: 100%; max-width: 560px; height: auto; background: #000; border-radius: 10px; }
+      progress { width: 100%; max-width: 560px; height: 16px; }
+      #result { text-align: center; max-width: 560px; }
     </style>
   </head>
   <body>
-    <h1>Farol — receptor (câmera)</h1>
-    <p>Aponte para a tela transmissora (página <a href="/send/">Transmitir</a>).</p>
-    <button id="start">Iniciar câmera</button>
+    <header>
+      <a href="../index.html">← Início</a>
+      <h1>Receber</h1>
+    </header>
+    <p>Aponte a câmera para a tela transmissora (<a href="../send/index.html">Transmitir</a>).</p>
+    <div class="row">
+      <button id="start">Iniciar câmera</button>
+      <button id="report" hidden>Exportar diagnóstico</button>
+    </div>
     <select id="cameraSelect" hidden aria-label="Câmera"></select>
     <video id="camera" class="camera" playsinline muted></video>
     <progress id="prog" max="1" value="0"></progress>

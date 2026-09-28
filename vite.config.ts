@@ -16,6 +16,7 @@ export default defineConfig({
         main: resolve(root, "index.html"),
         send: resolve(root, "send/index.html"),
         receive: resolve(root, "receive/index.html"),
+        demo: resolve(root, "demo/index.html"),
       },
     },
   },

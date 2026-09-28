@@ -59,6 +59,7 @@ export interface ReceiverProgress {
   readonly framesDecoded: number;
   readonly k: number;
   readonly totalLen: number;
+  readonly blockLen: number;
 }
 
 /**
@@ -69,8 +70,10 @@ export interface ReceiverProgress {
 export class Receiver {
   private decoder: LtDecoder | null = null;
   private identity: string | null = null;
+  private readonly seen = new Set<number>(); // seqs already fed, so duplicate frames are free
   private k = 0;
   private totalLen = 0;
+  private blockLen = 0;
   private framesDecoded = 0;
 
   constructor(private readonly codec?: PatternCodec) {}
@@ -96,6 +99,8 @@ export class Receiver {
     if (symbol.length !== header.blockLen) return this.isComplete;
 
     this.lockOnto(header);
+    if (this.seen.has(header.seq)) return this.isComplete; // duplicate frame — nothing new
+    this.seen.add(header.seq);
     this.framesDecoded++;
     this.decoder!.addSymbol(header.seq, symbol);
     return this.isComplete;
@@ -107,7 +112,9 @@ export class Receiver {
     this.identity = identity;
     this.k = header.k;
     this.totalLen = header.totalLen;
+    this.blockLen = header.blockLen;
     this.framesDecoded = 0;
+    this.seen.clear();
     this.decoder = new LtDecoder({ k: header.k, blockLen: header.blockLen, totalLen: header.totalLen });
   }
 
@@ -122,6 +129,7 @@ export class Receiver {
       framesDecoded: this.framesDecoded,
       k: this.k,
       totalLen: this.totalLen,
+      blockLen: this.blockLen,
     };
   }
 

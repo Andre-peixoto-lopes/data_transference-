@@ -2,29 +2,42 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Farol — transmissor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Farol — transmitir</title>
     <style>
       :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
       body {
-        margin: 0; font: 15px/1.5 system-ui, sans-serif; background: #0e1116; color: #e6edf3;
-        display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem 1rem;
+        margin: 0; min-height: 100dvh; font: 16px/1.5 system-ui, sans-serif;
+        background: #0e1116; color: #e6edf3;
+        display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+        padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
       }
-      h1 { margin: 0; font-size: 1.3rem; }
+      header { width: 100%; max-width: 560px; display: flex; align-items: center; gap: 0.75rem; }
+      header a { color: #2f81f7; text-decoration: none; font-size: 0.95rem; }
+      h1 { margin: 0; font-size: 1.2rem; }
       p, pre { margin: 0; color: #9aa7b4; text-align: center; }
+      pre { white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; max-width: 560px; }
       a { color: #2f81f7; }
-      .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; align-items: center; }
-      .controls label { display: inline-flex; align-items: center; gap: 0.35rem; color: #9aa7b4; }
-      .controls input[type="number"], .controls select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 0.4rem 0.5rem; font: inherit; }
-      .controls input[type="number"] { width: 3.5rem; }
-      button { background: #2f81f7; color: #fff; border: 0; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 1rem; cursor: pointer; }
-      canvas.screen { width: min(90vmin, 520px); height: auto; image-rendering: pixelated; background: #fff; border-radius: 6px; }
+      .controls { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; max-width: 560px; }
+      .controls label { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; color: #9aa7b4; }
+      input[type="file"] { width: 100%; }
+      input[type="number"], select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 10px; padding: 0.55rem 0.6rem; font: inherit; min-height: 44px; }
+      input[type="number"] { width: 5rem; }
+      select { flex: 1 1 auto; }
+      .buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+      .buttons button { flex: 1 1 8rem; }
+      button { background: #2f81f7; color: #fff; border: 0; border-radius: 10px; padding: 0.7rem 1rem; font-size: 1rem; min-height: 44px; cursor: pointer; }
+      canvas.screen { width: 100%; max-width: min(92vw, 520px); height: auto; image-rendering: pixelated; background: #fff; border-radius: 10px; }
       canvas.screen:fullscreen { width: 100vh; height: 100vh; max-width: 100vw; border-radius: 0; }
     </style>
   </head>
   <body>
-    <h1>Farol — transmissor (tela)</h1>
-    <p>Escolha um arquivo e aponte a câmera (página <a href="/receive/">Receber</a>) para esta tela.</p>
+    <header>
+      <a href="../index.html">← Início</a>
+      <h1>Transmitir</h1>
+    </header>
+    <p>Escolha um arquivo; aponte a câmera do <a href="../receive/index.html">receptor</a> para esta tela.</p>
     <div class="controls">
       <input id="file" type="file" />
       <label>fps <input id="fps" type="number" min="1" max="30" value="24" /></label>
@@ -45,8 +58,11 @@
           <option value="H">H (robusto)</option>
         </select>
       </label>
-      <button id="start">Transmitir</button>
-      <button id="fullscreen">⛶ Tela cheia</button>
+      <div class="buttons">
+        <button id="start">Transmitir</button>
+        <button id="benchmark">Benchmark 1 MB</button>
+        <button id="fullscreen">⛶ Tela cheia</button>
+      </div>
     </div>
     <canvas id="screen" class="screen"></canvas>
     <pre id="status">pronto.</pre>

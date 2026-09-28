@@ -1,0 +1,13 @@
+[project]
+name = "farol-analysis"
+version = "0.1.0"
+description = "Analise dos relatorios de transferencia optica do Farol (goodput, hit rate, overhead)."
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.5", "matplotlib>=3.8"]
+
+[tool.setuptools]
+packages = ["farol_analysis"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

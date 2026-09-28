@@ -123,6 +123,7 @@ npm run typecheck  # tsc --noEmit
 - Protocolo de fio: [docs/protocol.md](docs/protocol.md)
 - Decisões de arquitetura: [docs/decisions/](docs/decisions/)
 - Diário de aprendizado: [docs/DEVLOG.md](docs/DEVLOG.md)
+- Roadmap (próximos passos): [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ## Referências
 

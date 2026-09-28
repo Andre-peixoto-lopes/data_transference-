@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-09-27T22:04:57.383Z",
+  "durationSeconds": 7.5091000000238415,
+  "complete": true,
+  "progress": 1,
+  "fileName": "Plano alimentar - Luana De Oliveira (1).pdf",
+  "fileBytes": 98693,
+  "k": 63,
+  "framesCaptured": 211,
+  "framesDecoded": 88,
+  "overhead": 1.3968253968253967,
+  "hitRate": 0.41706161137440756,
+  "captureFps": 28.099239589209102,
+  "goodputKBs": 11.78713057320038,
+  "decodeWorkers": 4,
+  "cameraResolution": "1080x1920",
+  "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Mobile Safari/537.36"
+}
