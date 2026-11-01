@@ -3,6 +3,103 @@
 Registro do que foi feito, o que deu certo e o que deu errado. Entradas do mais
 recente para o mais antigo.
 
+## 2026-10-31 — Primeiros relatórios reais do v2: análise + roteiro de testes
+
+### Feito
+- Análise dos 10 relatórios de hoje (Android e iPhone, emissor MacBook 120 Hz) em
+  [ROTEIRO-TESTES.md](ROTEIRO-TESTES.md), com 6 figuras para o TCC em `docs/figuras/`.
+- Harness: descarta re-exportações vazias e sessões repetidas; tabela por run e por
+  configuração (média ± desvio pela `?tag=`); estima a janela de troca W; simulação do
+  fountain em Python (`fountain_sim.py`) para a figura de overhead × K.
+- Correções de medição no receptor: a duração começa na **captura** do primeiro código
+  (não na decodificação, que espera o wasm dos workers compilar); decodificações de um
+  run anterior são ignoradas; o botão "Exportar diagnóstico" some ao concluir (gerava
+  relatório com `fileBytes = 0`); `hit` não passa mais de 100%.
+- Emissor: refresh medido pela média dos intervalos (a mediana de timestamps com
+  resolução de 0,1 ms lia 120 Hz como 120,48).
+- Receptor aceita `?tag=`, `?decode=`, `?fps=`, `?res=` para os experimentos; tudo vai
+  para o relatório junto com o fps real da câmera e a resolução entregue ao decoder.
+- Publicável na Vercel (URL fixa, sem túnel): o coletor virou `/api/diagnostics` — plugin
+  do Vite no dev, função serverless com Blob privado no site. No site ele só aceita quem
+  tem a chave (`?key=` uma vez por aparelho, guardada no navegador), e
+  `npm run reports:pull` traz os relatórios para `analysis/reports/`.
+
+### Aprendizados
+- **Overhead 1,002–1,008 no campo** (K = 617–1254, inclusive acima do teto de 1024 da
+  eliminação): a eliminação gaussiana entrega o que a simulação previa. O fountain saiu
+  da lista de gargalos.
+- **A vazão se perde no canal**: catch de 55–68% joga fora 32–45% da taxa da tela.
+- **Zero duplicatas com a câmera mais rápida que a tela** (30 × 24 fps) revelou uma janela
+  W ≈ 19 ms em torno de cada troca de código em que a captura sai misturada. Modelo
+  `catch ≈ (T_tela − W)/T_captura` prevê 20 fps como ótimo robusto para câmera de 30 fps;
+  os 97% a 30 fps vieram de fase travada (mesma taxa nos dois lados) — pode ter sido sorte.
+- **Android limitado pela captura** (16–22 fps processados): em retrato o quadro 1080×1920
+  vai inteiro para o decoder, porque o limite de 1280 px valia só para a largura.
+- Densidade v27 → v36 no Android: +76% de goodput com o mesmo catch.
+- Primeiro run com 4 códigos (Android, retrato): a tela ofereceu 135 KB/s, mas cada
+  captura leu 1,2 dos 4 códigos — 35,1 KB/s. Em retrato falta resolução por código.
+
+### Próximo
+- Executar o roteiro (E0–E6), começando por E1 (fps) e E3 (`?decode=` no Android).
+- Medir vários códigos por quadro com o celular na horizontal (E4).
+
+## 2026-10-23 — Investigação do decimen (abordagem REA) → protocolo v2
+
+### Método
+Abordagem do [REA](https://github.com/morluto/rea): investigar como a feature
+funciona no app de referência, **mostrar a evidência**, implementar a nossa versão e
+testar. Alvo: [decimen](https://github.com/bashalarmistalt/decimen-optical-transfer)
+(docs técnicas + `shared/fountain.ts`). É AGPL-3.0: usamos ideias e medições, nenhum
+código copiado. Cada ideia passou por simulação ou teste antes de entrar.
+
+### Feito
+- **Fountain com eliminação gaussiana** (GF(2)) sobre o resíduo do peeling (≤ 1024
+  incógnitas) — decodificação de máxima verossimilhança; **fountain linear denso**
+  para K ≤ 64; índice bloco→pendentes no peeling; progresso por **posto** (resolvidos
+  + pendentes) em vez de blocos resolvidos.
+- **Determinismo (Fase 3)**: `detLn`/`detSqrt` só com `+ − × ÷` IEEE-754 + vetores-ouro.
+- **Protocolo v2**: flags must-understand/ignorável, byte `codes`, erro tipado — o
+  receptor diz qual versão viu em vez de ficar mudo.
+- **QR**: capacidade por versão × ECC (corrige o crash de ECC H/Q com densidade
+  alta; o rótulo "2071 B (v33)" estava errado — v33-L = 2068 B), versão e **máscara
+  fixas** (2,1 → 0,28 ms por QR v27).
+- **Vários códigos por quadro** (1/2/4); o receptor lê até N por captura.
+- **Emissor**: loop por `requestAnimationFrame` com nº inteiro de refreshes por quadro
+  (sem cadência 2-3-2-3), escala inteira por módulo, pré-render fora do vsync, wake lock.
+- **Receptor**: contador de geração (trocar de câmera duplicava o loop de captura),
+  wake lock, aviso de versão incompatível, recomeço automático se o SHA-256 falhar,
+  **nome do arquivo recebido como texto** (ia para `innerHTML`: XSS vindo do QR) e
+  blob inerte para download.
+- **Rig de diagnóstico** (`/__diagnostics`, só no dev server): relatório salvo em
+  `analysis/reports/` mesclado com o anúncio do emissor e seus travamentos; whitelist
+  de campos, limite de tamanho e de quantidade (o túnel é público).
+- Relatório ganha `catchRate`, `seqSpan`, duplicatas, redundantes, aquisição e códigos
+  por quadro; harness Python lê v1 e v2. Testes: 22 → 42 (inclui e2e multi-código
+  com o **zxing-wasm real** em Node).
+
+### Aprendizados
+- **Copiar sem medir teria piorado.** O decimen trocou o soliton por um carrossel
+  sistemático; simulado com peeling e receptor entrando em ponto aleatório, ele só
+  ganha para K pequeno — para 1 MB (K=728) fica 1.36x contra 1.17x do LT.
+- **O gargalo do fountain era o decoder, não a distribuição.** Com eliminação, o
+  mesmo LT completa com ~1.01–1.06·K em qualquer perda. E2E de transporte (K=65):
+  1.72x/1.89x/1.25x → **1.06x/1.08x/1.05x** (0/20/40% de perda); demo loopback K=41:
+  1.17x → 1.05x; 2×2 com zxing (K=25): 40 → 28 códigos.
+- No ponto em que o ML completa, o peeling deixou **80–94% dos blocos** no resíduo: a
+  eliminação resolve quase o sistema inteiro (custo ~U²) — daí o teto de 1024.
+- Progresso por blocos resolvidos mente num fountain (fica baixo e salta no fim).
+- `tryInvert: false` no zxing: códigos Farol nunca são invertidos; metade do trabalho
+  nos quadros ilegíveis.
+- Página oculta roda `requestAnimationFrame` irregular (~1 Hz): a medição do refresh
+  precisa de fallback e travamento só conta com a aba visível.
+
+### Próximo
+- Medir no par Galaxy Book → S23: 1 vs 2 vs 4 códigos, 20/30 fps, v20/v27 — os
+  relatórios agora chegam sozinhos em `analysis/reports/`.
+- Recorte da região dos códigos em resolução cheia (o "fast path" rastreado do
+  decimen-codec) quando 4 códigos ficarem pequenos demais a 1280 px.
+- PWA offline (Fase 5).
+
 ## 2026-09-27 — Salto de throughput: zxing-wasm + parâmetros do decimen
 
 ### Feito

@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "vitest run e2e",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "reports:pull": "node --env-file-if-exists=.env.local scripts/pull-reports.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
@@ -24,6 +25,7 @@
   "dependencies": {
     "@capacitor/android": "^8.5.2",
     "@capacitor/core": "^8.5.2",
+    "@vercel/blob": "^2.8.2",
     "jsqr": "^1.4.0",
     "qrcode": "^1.5.4",
     "zxing-wasm": "^3.1.4"

@@ -3,6 +3,11 @@ dist/
 dist-standalone/
 coverage/
 *.log
+*.vscode
+
+# Local secrets (FAROL_KEY for reports:pull) and the Vercel CLI link
+.env*.local
+.vercel/
 
 # Python analysis harness
 analysis/.venv/

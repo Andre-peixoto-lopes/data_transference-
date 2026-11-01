@@ -7,11 +7,16 @@ critério de aceite **mensurável** e valida com `npm test`/`typecheck`/`build`.
 > Princípio norteador: **medir antes de otimizar**. A Fase 0 existe para nenhum
 > ganho ser "achismo" — todo salto é comprovado por número (goodput, hit%, BER).
 
-## Estado atual (baseline qualitativo)
-- QR animado + fountain LT; decoder **zxing-wasm** (main thread, async).
-- Defaults do decimen: 24 fps, 1465 B/frame (QR v27), ECC L.
-- Câmera: melhor lente automática, foco contínuo, telemetria ao vivo, decode 1280px, tela cheia.
-- 22 testes verdes; sem cripto, sem PWA, sem harness, sem métricas persistidas.
+## Estado atual (2026-10-23)
+- Protocolo **v2**: fountain LT com **eliminação gaussiana** (~K·1.05) e regime denso
+  para K ≤ 64; CDF determinística (Fase 3 ✔); flags must-understand.
+- Emissor: QR com versão/máscara fixas, **1/2/4 códigos por quadro**, fps travado no
+  refresh, escala inteira, wake lock. Receptor: pool de workers zxing-wasm (Fase 1 ✔),
+  leitura de vários códigos por captura.
+- Telemetria (Fase 0 ✔) com `catchRate`; relatórios chegam sozinhos em
+  `analysis/reports/` via `/api/diagnostics` (dev server, ou site na Vercel + `npm run reports:pull`);
+  harness Python (Fase 2 ✔).
+- 42 testes verdes; sem cripto, sem PWA.
 
 ## Marcos
 | Fase | Objetivo | Tamanho | Depende de |
@@ -64,9 +69,11 @@ trava (captura mantém ≥24 fps no relatório).
 **Aceite:** `python -m analysis reports/` gera CSV/tabela + PNGs a partir de ≥3 runs.
 **Valida:** rodar sobre os relatórios da Fase 0/1; `.venv` já ignorado no `.gitignore`.
 
-## Fase 3 — Determinismo do soliton
+## Fase 3 — Determinismo do soliton ✔ (2026-10-23)
 **Objetivo:** fechar o risco em aberto do [ADR 0003](decisions/0003-reliability-layering.md)
 (`Math.log` não é bit-idêntico entre V8 e JavaScriptCore → falha **silenciosa** em iOS).
+**Feito:** `detLn`/`detSqrt` (só `+ − × ÷` IEEE-754) + vetores-ouro da CDF e dos vizinhos;
+protocolo v2.
 - 3.1 `app/shared/soliton.ts`: substituir `Math.log` na CDF por log **determinístico**
   (fixed-point ou tabela racional), mantendo a distribuição.
 - 3.2 `app/shared/soliton.test.ts` (novo): **vetor-ouro** da CDF trava o determinismo.

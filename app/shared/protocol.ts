@@ -7,20 +7,24 @@ import { concatBytes } from "./bytes.js";
  * Layout (big-endian), 24 bytes:
  *   0  u8   magic 0xD1
  *   1  u8   magic 0xC3
- *   2  u8   version
- *   3  u8   flags
+ *   2  u8   version    (gates parsing wholesale)
+ *   3  u8   flags      (low nibble: must-understand; high nibble: safe to ignore)
  *   4  u16  sessionId
  *   6  u32  seq
  *   10 u16  k          (source block count)
  *   12 u16  blockLen
  *   14 u32  totalLen   (original payload length)
  *   18 u8   patternId  (which PatternCodec produced this stream)
- *   19 u8   reserved x5
+ *   19 u8   codes      (codes tiled per displayed frame; informational)
+ *   20 u8   reserved x4
  */
 export const FRAME_MAGIC_0 = 0xd1;
 export const FRAME_MAGIC_1 = 0xc3;
-export const PROTOCOL_VERSION = 1;
+/** v2: deterministic soliton CDF (detLn/detSqrt) + flags rule + `codes` byte. */
+export const PROTOCOL_VERSION = 2;
 export const FRAME_HEADER_LENGTH = 24;
+const MUST_UNDERSTAND_FLAGS = 0x0f;
+const KNOWN_MUST_UNDERSTAND = 0x00; // no must-understand feature defined yet
 
 export interface FrameHeader {
   readonly version: number;
@@ -31,6 +35,17 @@ export interface FrameHeader {
   readonly blockLen: number;
   readonly totalLen: number;
   readonly patternId: number;
+  readonly codes: number;
+}
+
+/** A Farol frame this build cannot read (newer/older version or an unknown must-understand flag). */
+export class UnsupportedFrameError extends Error {
+  constructor(
+    readonly reason: "version" | "flags",
+    readonly value: number,
+  ) {
+    super(reason === "version" ? `unsupported protocol version ${value}` : `unsupported must-understand flags 0x${value.toString(16)}`);
+  }
 }
 
 export function packHeader(header: FrameHeader): Uint8Array {
@@ -46,6 +61,7 @@ export function packHeader(header: FrameHeader): Uint8Array {
   view.setUint16(12, header.blockLen);
   view.setUint32(14, header.totalLen);
   buffer[18] = header.patternId;
+  buffer[19] = header.codes;
   return buffer;
 }
 
@@ -58,18 +74,20 @@ export function parseHeader(bytes: Uint8Array): FrameHeader {
   }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const version = bytes[2];
-  if (version !== PROTOCOL_VERSION) {
-    throw new Error(`unsupported protocol version ${version}`);
-  }
+  if (version !== PROTOCOL_VERSION) throw new UnsupportedFrameError("version", version);
+  const flags = bytes[3];
+  const unknownRequired = flags & MUST_UNDERSTAND_FLAGS & ~KNOWN_MUST_UNDERSTAND;
+  if (unknownRequired !== 0) throw new UnsupportedFrameError("flags", unknownRequired);
   return {
     version,
-    flags: bytes[3],
+    flags,
     sessionId: view.getUint16(4),
     seq: view.getUint32(6),
     k: view.getUint16(10),
     blockLen: view.getUint16(12),
     totalLen: view.getUint32(14),
     patternId: bytes[18],
+    codes: Math.max(1, bytes[19]),
   };
 }
 

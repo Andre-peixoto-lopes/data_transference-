@@ -65,6 +65,7 @@ async function runTransfer(file: FileContainer, dropRate: number, seed: number):
       blockLen: BLOCK_LEN,
       totalLen: containerBytes.length,
       patternId: 0,
+      codes: 1,
     };
     displayed.push(packFrame(header, encoder.encodeSymbol(seq)));
   }
@@ -102,6 +103,8 @@ describe("E2E — pipeline de transporte (arquivo -> frames -> canal com perdas 
           `exibidos=${result.displayed} entregues=${result.delivered} usados=${result.framesUsed} | ` +
           `overhead=${overhead}x | SHA-256 OK`,
       );
+      // Peeling alone needed 1.25-1.89x here; elimination decodes at ~full rank.
+      expect(result.framesUsed / result.k).toBeLessThan(1.15);
     });
   }
 });

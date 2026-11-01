@@ -13,5 +13,5 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true
   },
-  "include": ["app", "tests", "e2e"]
+  "include": ["app", "api", "tests", "e2e", "vite.config.ts"]
 }

@@ -12,24 +12,30 @@ export interface DecodeRequest {
   readonly width: number;
   readonly height: number;
   readonly buffer: ArrayBuffer; // RGBA pixels, transferred from the main thread
+  readonly maxSymbols: number; // codes the sender tiles per displayed frame
 }
 
 export interface DecodeResponse {
   readonly id: number;
-  readonly bytes: Uint8Array | null; // decoded QR byte-mode payload, or null
+  readonly payloads: Uint8Array[]; // decoded QR byte-mode payloads (empty = nothing readable)
 }
 
 self.addEventListener("message", async (event: MessageEvent<DecodeRequest>) => {
-  const { id, width, height, buffer } = event.data;
+  const { id, width, height, buffer, maxSymbols } = event.data;
   const image = new ImageData(new Uint8ClampedArray(buffer), width, height);
-  let bytes: Uint8Array | null = null;
+  let payloads: Uint8Array[] = [];
   try {
-    const results = await readBarcodes(image, { formats: ["QRCode"], tryHarder: false, maxNumberOfSymbols: 1 });
-    const hit = results.find((r) => r.isValid && r.bytes.length > 0);
-    if (hit) bytes = hit.bytes;
+    // Farol codes are never inverted: skipping the inverted retry halves the work on unreadable frames.
+    const results = await readBarcodes(image, {
+      formats: ["QRCode"],
+      tryHarder: false,
+      tryInvert: false,
+      maxNumberOfSymbols: maxSymbols,
+    });
+    payloads = results.filter((r) => r.isValid && r.bytes.length > 0).map((r) => r.bytes);
   } catch {
     /* undecodable frame — the fountain absorbs the loss */
   }
-  const response: DecodeResponse = { id, bytes };
+  const response: DecodeResponse = { id, payloads };
   self.postMessage(response);
 });
