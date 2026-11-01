@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "vite"
+    },
+    "diagnostics": {
+      "root": ".",
+      "framework": "node",
+      "entrypoint": "api/diagnostics.ts",
+      "devCommand": "vite --port $PORT"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/diagnostics",
+      "destination": {
+        "service": "diagnostics"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}

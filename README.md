@@ -68,11 +68,13 @@ com URL fixa, sem túnel) ou use um túnel HTTPS para o dev server:
 
 ### Opção 0 — site publicado na Vercel (URL fixa, sem túnel)
 
-O app é estático (`vite build`) e a função [api/diagnostics.ts](api/diagnostics.ts)
-guarda os relatórios num Blob privado. Uma vez só:
+O [vercel.json](vercel.json) publica dois services no mesmo projeto: `app` (o site
+estático do `vite build`, em `/`) e `diagnostics` (a função
+[api/diagnostics.ts](api/diagnostics.ts), só em `/api/diagnostics`), que guarda os
+relatórios num Blob privado. O `analysis/` não vai para a Vercel. Uma vez só:
 
-1. Vercel → **Add New → Project** → importe este repositório do GitHub (o preset
-   *Vite* já vem certo: `npm run build`, saída `dist`).
+1. Vercel → **Add New → Project** → importe este repositório do GitHub e confira que o
+   *Framework Preset* ficou **Services** (vem do `vercel.json`).
 2. No projeto: **Storage → Create → Blob → Private** e conecte ao projeto (a função
    autentica sozinha, via OIDC).
 3. **Settings → Environment Variables**: `DIAGNOSTICS_KEY` = um segredo longo
@@ -85,7 +87,9 @@ guarda os relatórios num Blob privado. Uma vez só:
    `npm run reports:pull` — eles caem em `analysis/reports/`.
 
 Cada `git push` na `main` publica de novo. Sem a chave o site funciona igual, mas o
-relatório é baixado no celular.
+relatório é baixado no celular. Para rodar os dois services juntos na máquina:
+`npx vercel dev --local` (ali o `/api/diagnostics` é o coletor do Vite, que grava em
+`analysis/reports/`, não o Blob).
 
 ### Opção A — túnel Cloudflare (rápido, sem login)
 

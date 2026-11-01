@@ -23,6 +23,8 @@ recente para o mais antigo.
   do Vite no dev, função serverless com Blob privado no site. No site ele só aceita quem
   tem a chave (`?key=` uma vez por aparelho, guardada no navegador), e
   `npm run reports:pull` traz os relatórios para `analysis/reports/`.
+- `vercel.json` em modo services: `app` (Vite, `/`) e `diagnostics` (a função, só
+  `/api/diagnostics`); sem bindings, porque nenhum service chama outro pelo servidor.
 
 ### Aprendizados
 - **Overhead 1,002–1,008 no campo** (K = 617–1254, inclusive acima do teto de 1024 da
@@ -38,6 +40,9 @@ recente para o mais antigo.
 - Densidade v27 → v36 no Android: +76% de goodput com o mesmo catch.
 - Primeiro run com 4 códigos (Android, retrato): a tela ofereceu 135 KB/s, mas cada
   captura leu 1,2 dos 4 códigos — 35,1 KB/s. Em retrato falta resolução por código.
+- Vercel em modo services **não constrói `api/`** (aviso `api_dir_ignored`): a função
+  precisa ser um service próprio. E o `analysis/` não é service: sem entrypoint
+  ASGI/WSGI o build falha (`MISSING_SERVICE_CONFIG`).
 
 ### Próximo
 - Executar o roteiro (E0–E6), começando por E1 (fps) e E3 (`?decode=` no Android).
