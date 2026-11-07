@@ -1,3 +1,5 @@
+import { saveFile } from "./save-file.js";
+
 /**
  * A reproducible per-transfer report — the unit the Python analysis harness
  * consumes. One JSON file is produced each time the receiver completes a file.
@@ -52,14 +54,9 @@ export interface SenderAnnouncement {
   readonly stalls?: number; // display-loop freezes > 1 s, counted by the dev endpoint
 }
 
-/** Triggers a browser download of the report as pretty-printed JSON. */
-export function downloadReport(report: TransferReport): void {
+/** Saves the report as pretty-printed JSON (see saveFile for what the result means). */
+export function downloadReport(report: TransferReport): Promise<string | null> {
   const stamp = report.startedAt.replace(/[:.]/g, "-");
   const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `farol-report-${stamp}.json`;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  return saveFile(blob, `farol-report-${stamp}.json`);
 }

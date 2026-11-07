@@ -3,6 +3,7 @@ import type { FileContainer } from "../shared/container.js";
 import { postDiagnostics, reportingKey } from "../shared/diagnostics.js";
 import { FRAME_HEADER_LENGTH, PROTOCOL_VERSION } from "../shared/protocol.js";
 import { Receiver } from "../shared/session.js";
+import { saveFile } from "../shared/save-file.js";
 import { downloadReport, type TransferReport } from "../shared/telemetry.js";
 import { ScreenWakeLock } from "../shared/wake-lock.js";
 import type { DecodeRequest, DecodeResponse } from "./decode-worker.js";
@@ -353,7 +354,17 @@ function buildReport(fileName: string, fileBytes: number, complete: boolean): Tr
 /** Collector reachable (dev server, or the deployed site with this device's key): report goes to analysis. Otherwise: download. */
 async function deliverReport(transferReport: TransferReport): Promise<void> {
   if (REPORT_KEY !== null && (await postDiagnostics({ kind: "receiver-report", report: transferReport }, REPORT_KEY))) return;
-  downloadReport(transferReport);
+  await downloadReport(transferReport);
+}
+
+/** Browsers show their own download UI; the Android app has none, so say where the file went. */
+async function tellSaved(saving: Promise<string | null>): Promise<void> {
+  try {
+    const location = await saving;
+    if (location) statusBox.textContent = `salvo em ${location}`;
+  } catch (error) {
+    statusBox.textContent = `não foi possível salvar: ${(error as Error).message}`;
+  }
 }
 
 async function finish(): Promise<void> {
@@ -379,7 +390,7 @@ async function finish(): Promise<void> {
 
   // The filename and media type arrive over the air (untrusted): text nodes only, never innerHTML,
   // and an inert blob type so an "open in new tab" cannot render active content (HTML/SVG) in this origin.
-  const url = URL.createObjectURL(new Blob([toArrayBufferBytes(file.payload)], { type: "application/octet-stream" }));
+  const blob = new Blob([toArrayBufferBytes(file.payload)], { type: "application/octet-stream" });
   const verified = document.createElement("p");
   verified.append(Object.assign(document.createElement("strong"), { textContent: "SHA-256 OK" }), " — arquivo reconstruído bit-a-bit.");
   const stats = document.createElement("p");
@@ -387,11 +398,15 @@ async function finish(): Promise<void> {
     `${file.filename} • ${file.payload.length} bytes • ${transferReport.goodputKBs.toFixed(1)} KB/s • ` +
     `catch ${(transferReport.catchRate * 100).toFixed(0)}% • overhead ${transferReport.overhead.toFixed(2)}x • ` +
     `${transferReport.codesPerFrame} código(s)/quadro • ${POOL_SIZE} workers`;
-  const download = Object.assign(document.createElement("a"), { href: url, download: file.filename, textContent: "Baixar arquivo" });
+  const download = Object.assign(document.createElement("a"), { href: "#", textContent: "Baixar arquivo" });
+  download.addEventListener("click", (event) => {
+    event.preventDefault();
+    void tellSaved(saveFile(blob, file.filename));
+  });
   const reportLink = Object.assign(document.createElement("a"), { href: "#", textContent: "Baixar relatório (JSON)" });
   reportLink.addEventListener("click", (event) => {
     event.preventDefault();
-    downloadReport(transferReport);
+    void tellSaved(downloadReport(transferReport));
   });
   resultBox.replaceChildren(verified, stats, download, " · ", reportLink);
   statusBox.textContent = `concluído • ${transferReport.goodputKBs.toFixed(1)} KB/s • ${transferReport.durationSeconds.toFixed(1)}s`;

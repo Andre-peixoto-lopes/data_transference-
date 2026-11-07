@@ -1,6 +1,7 @@
 import { toArrayBufferBytes } from "../shared/bytes.js";
 import type { FileContainer } from "../shared/container.js";
 import { GridCodec } from "../shared/patterns/grid-codec.js";
+import { saveFile } from "../shared/save-file.js";
 import { Receiver, Transmitter } from "../shared/session.js";
 
 const codec = new GridCodec({ cols: 32, rows: 32, cellSize: 12, margin: 16 });
@@ -69,12 +70,19 @@ async function finish(receiver: Receiver, startedAt: number, framesSeen: number,
   const restored = await receiver.result();
   const seconds = (performance.now() - startedAt) / 1000;
   const throughput = (restored.payload.length / 1024 / seconds).toFixed(1);
-  const url = URL.createObjectURL(new Blob([toArrayBufferBytes(restored.payload)], { type: restored.mediaType }));
+  const blob = new Blob([toArrayBufferBytes(restored.payload)], { type: restored.mediaType });
 
   resultBox.innerHTML =
     `<p><strong>SHA-256 OK</strong> — arquivo reconstruído bit-a-bit.</p>` +
-    `<p>${restored.filename} • ${restored.payload.length} bytes • ${throughput} KB/s • overhead ${(framesSeen / Math.max(1, k)).toFixed(2)}x</p>` +
-    `<a id="download" href="${url}" download="${restored.filename}">Baixar arquivo recebido</a>`;
+    `<p>${restored.filename} • ${restored.payload.length} bytes • ${throughput} KB/s • overhead ${(framesSeen / Math.max(1, k)).toFixed(2)}x</p>`;
+  const download = Object.assign(document.createElement("a"), { id: "download", href: "#", textContent: "Baixar arquivo recebido" });
+  download.addEventListener("click", (event) => {
+    event.preventDefault();
+    void saveFile(blob, restored.filename).then((location) => {
+      if (location) statusBox.textContent = `salvo em ${location}`;
+    });
+  });
+  resultBox.append(download);
 }
 
 startButton.addEventListener("click", () => void transmit());

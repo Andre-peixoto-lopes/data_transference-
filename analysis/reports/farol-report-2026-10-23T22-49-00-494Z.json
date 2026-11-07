@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-10-23T22:49:00.494Z",
+  "durationSeconds": 0.249,
+  "complete": true,
+  "progress": 1,
+  "fileName": "teste-esse-prompt-descreva-o-que-houve-com-essa-da.md",
+  "fileBytes": 10963,
+  "k": 3,
+  "framesCaptured": 55,
+  "framesDecoded": 6,
+  "overhead": 2,
+  "hitRate": 0.10909090909090909,
+  "captureFps": 220.8835341365462,
+  "goodputKBs": 16.546655371485944,
+  "bytesPerFrame": 1465,
+  "decodeWorkers": 4,
+  "cameraResolution": "1080x1920",
+  "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5.2 Mobile/15E148 Safari/604.1"
+}
