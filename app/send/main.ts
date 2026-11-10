@@ -33,6 +33,10 @@ const wakeLock = new ScreenWakeLock();
 const REPORT_KEY = reportingKey(import.meta.env.DEV);
 let generation = 0; // bumps on every start; stale display loops see the change and stop
 
+function decimal(value: number, digits: number): string {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
 /** Deterministic 1 MB payload — the canonical, reproducible benchmark input. */
 function benchmarkFile(): FileContainer {
   const payload = new Uint8Array(1024 * 1024);
@@ -139,7 +143,7 @@ async function start(override?: FileContainer): Promise<void> {
     const grossKBs = (transmitter.blockLen * codes * displayFps) / 1024;
     const summary =
       `${file.filename} (${file.payload.length} B) • K=${transmitter.k} • QR v${version}-${ecc} × ${codes} • ` +
-      `${displayFps.toFixed(1)} fps (${refreshHz.toFixed(0)} Hz ÷ ${vsyncsPerFrame}) ≈ ${grossKBs.toFixed(1)} KB/s bruto`;
+      `${decimal(displayFps, 1)} quadros/s (${refreshHz.toFixed(0)} Hz ÷ ${vsyncsPerFrame}) ≈ ${decimal(grossKBs, 1)} KB/s bruto`;
 
     show(transmitter.renderFrame(0));
     void wakeLock.acquire();

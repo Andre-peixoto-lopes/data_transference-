@@ -40,11 +40,11 @@
     <p>Escolha um arquivo; aponte a câmera do <a href="../receive/index.html">receptor</a> para esta tela.</p>
     <div class="controls">
       <input id="file" type="file" />
-      <label>fps <input id="fps" type="number" min="1" max="60" value="24" /></label>
+      <label>quadros/s <input id="fps" type="number" min="1" max="60" value="24" /></label>
       <label>densidade
         <select id="version"></select>
       </label>
-      <label>ECC
+      <label>correção de erros
         <select id="ecc">
           <option value="L" selected>L (rápido)</option>
           <option value="M">M</option>
@@ -61,7 +61,7 @@
       </label>
       <div class="buttons">
         <button id="start">Transmitir</button>
-        <button id="benchmark">Benchmark 1 MB</button>
+        <button id="benchmark">Teste de 1 MB</button>
         <button id="fullscreen">⛶ Tela cheia</button>
       </div>
     </div>

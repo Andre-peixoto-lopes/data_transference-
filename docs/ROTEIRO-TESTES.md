@@ -163,18 +163,18 @@ decodificação do fountain; a simulação está em `analysis/farol_analysis/fou
   tal que o código ocupe ~80% da largura do quadro — marque a posição na mesa. Retrato,
   salvo no E4.
 - **Luz**: a mesma iluminação ambiente em todas as sessões (anote).
-- **Arquivo**: sempre o **Benchmark 1 MB** (payload fixo, K = 436 em v36, 728 em v27), salvo no E5.
+- **Arquivo**: sempre o **Teste de 1 MB** (payload fixo, K = 436 em v36, 728 em v27), salvo no E5.
 - **Software**: o site publicado na Vercel (README, Opção 0), com a chave aberta uma vez
   em cada aparelho — **emissor e receptor no mesmo site**, para o relatório sair com as
   configurações do emissor. Alternativa: `npm run dev` + túnel (relatórios vão direto
   para `analysis/reports/`).
 
 ### 2.3 Procedimento de cada run
-1. No `/send/`: ajuste fps, densidade (versão do QR), ECC = L e códigos por quadro;
-   clique **Benchmark 1 MB** e depois **⛶ Tela cheia**.
+1. No `/send/`: ajuste quadros/s, densidade (versão do QR), correção de erros = L e códigos por quadro;
+   clique **Teste de 1 MB** e depois **⛶ Tela cheia**.
 2. No celular, abra o receptor **com a tag do run** (o celular já posicionado):
    `https://<projeto>.vercel.app/receive/?tag=e1-ios-fps20-r1`
-3. Toque **Iniciar câmera** e não mexa até o "SHA-256 OK".
+3. Toque **Iniciar câmera** e não mexa até o "SHA-256 verificado".
 4. Confira que **não** apareceu download de JSON no celular (se apareceu, a chave não está
    salva nesse navegador: abra `/receive/?key=…` de novo). No dev server, confira a linha
    `[farol] relatório …` no terminal do Vite.

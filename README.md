@@ -116,9 +116,9 @@ Visibility: Public**. Use o endereço `https://…devtunnels.ms/receive/` no cel
 1. **Celular** → abra `.../receive/` → **Iniciar câmera** (a melhor lente traseira
    é escolhida automaticamente) → aponte para a tela do PC a **~25–30 cm**.
 2. **PC** → `/send/` → escolha o arquivo → **Transmitir** → **⛶ Tela cheia**.
-3. O celular mostra telemetria ao vivo (`câmera fps → códigos/s • catch % • KB/s • ETA`;
-   *catch* = parte dos códigos exibidos que o receptor conseguiu ler).
-   Ao chegar a 100%: **"SHA-256 OK"** e o botão de download.
+3. O celular mostra telemetria ao vivo (`câmera quadros/s → códigos/s • leitura % • KB/s • faltam`;
+   *leitura* = parte dos códigos exibidos que o receptor conseguiu ler).
+   Ao chegar a 100%: **"SHA-256 verificado"** e o botão de download.
 
 ---
 
@@ -128,9 +128,9 @@ Valores padrão seguem o decimen; ajuste conforme sua câmera/tela.
 
 | Controle | Padrão | Efeito |
 |---|---|---|
-| **fps** | 24 | Alvo; cada quadro fica um número **inteiro** de refreshes (60 Hz ÷ 3 = 20 fps efetivos) — sem cadência 2-3-2-3. |
-| **densidade** | QR v27 | Versão do QR; a capacidade (B/código) depende do ECC e aparece no rótulo. |
-| **ECC** | L | O fountain cobre frames perdidos; o ECC do QR cobre corrupção interna. |
+| **quadros/s** | 24 | Alvo; cada quadro fica um número **inteiro** de refreshes (60 Hz ÷ 3 = 20 fps efetivos) — sem cadência 2-3-2-3. |
+| **densidade** | QR v27 | Versão do QR; a capacidade (B/código) depende da correção de erros e aparece no rótulo. |
+| **correção de erros** | L | Nível de ECC do QR: o fountain cobre frames perdidos; o ECC do QR cobre corrupção interna. |
 | **códigos por quadro** | 1 | 2 (lado a lado) ou 4 (grade 2×2): cada código é um frame independente — multiplica os bytes por quadro se a câmera ainda resolver os módulos. |
 
 **Se travar em 0% ou baixa %** (frames borrados): use **Tela cheia**, **afaste**

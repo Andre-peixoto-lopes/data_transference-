@@ -24,6 +24,10 @@ function intParam(name: string, min: number, max: number): number | undefined {
   return Number.isInteger(value) && value >= min && value <= max ? value : undefined;
 }
 
+function decimal(value: number, digits: number): string {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
 const startButton = document.querySelector<HTMLButtonElement>("#start")!;
 const cameraSelect = document.querySelector<HTMLSelectElement>("#cameraSelect")!;
 const reportButton = document.querySelector<HTMLButtonElement>("#report")!;
@@ -200,8 +204,8 @@ async function start(deviceId?: string): Promise<void> {
 
     streaming = true;
     statusBox.textContent =
-      `câmera ${cameraResolution} @ ${cameraFps.toFixed(0)} fps${tuned.length ? " • " + tuned.join(", ") : ""} • ` +
-      `${POOL_SIZE} workers${RUN_TAG ? ` • ${RUN_TAG}` : ""} — aponte para a tela e mantenha ~20-30 cm (afaste se embaçar).`;
+      `câmera ${cameraResolution} @ ${cameraFps.toFixed(0)} quadros/s${tuned.length ? " • " + tuned.join(", ") : ""} • ` +
+      `${POOL_SIZE} processos de leitura${RUN_TAG ? ` • ${RUN_TAG}` : ""} — aponte para a tela e mantenha ~20-30 cm (afaste se embaçar).`;
     scheduleNext(++generation);
   } catch (error) {
     if (deviceId) localStorage.removeItem(CAMERA_STORAGE_KEY); // stale id — reprobe next time
@@ -298,7 +302,7 @@ function report(): void {
       ? incompatible.reason === "version"
         ? `emissor Farol de protocolo v${incompatible.value}; este receptor lê v${PROTOCOL_VERSION} — recarregue as duas páginas.`
         : "emissor Farol usa um recurso que este receptor não conhece — recarregue as duas páginas."
-      : `procurando frames Farol… • câmera ${capFps.toFixed(0)} fps`;
+      : `procurando quadros Farol… • câmera ${capFps.toFixed(0)} quadros/s`;
     return;
   }
 
@@ -308,8 +312,8 @@ function report(): void {
   const catchRate = info.seqSpan > 0 ? (info.framesDecoded / info.seqSpan) * 100 : 0;
   statusBox.textContent =
     `recebendo ${Math.round(info.progress * 100)}% • K=${info.k}${info.codes > 1 ? ` • ${info.codes} códigos/quadro` : ""} • ` +
-    `câmera ${capFps.toFixed(0)} fps → ${readFps.toFixed(0)} códigos/s (${hitRate.toFixed(0)}%) • catch ${catchRate.toFixed(0)}% • ` +
-    `${(rate / 1024).toFixed(1)} KB/s • ETA ${Number.isFinite(eta) ? Math.ceil(eta) + "s" : "—"}`;
+    `câmera ${capFps.toFixed(0)} quadros/s → ${readFps.toFixed(0)} códigos/s (${hitRate.toFixed(0)}%) • leitura ${catchRate.toFixed(0)}% • ` +
+    `${decimal(rate / 1024, 1)} KB/s • faltam ${Number.isFinite(eta) ? Math.ceil(eta) + " s" : "—"}`;
 }
 
 /** Snapshots the current transfer state into a report — works mid-transfer too. */
@@ -392,12 +396,12 @@ async function finish(): Promise<void> {
   // and an inert blob type so an "open in new tab" cannot render active content (HTML/SVG) in this origin.
   const blob = new Blob([toArrayBufferBytes(file.payload)], { type: "application/octet-stream" });
   const verified = document.createElement("p");
-  verified.append(Object.assign(document.createElement("strong"), { textContent: "SHA-256 OK" }), " — arquivo reconstruído bit-a-bit.");
+  verified.append(Object.assign(document.createElement("strong"), { textContent: "SHA-256 verificado" }), " — arquivo reconstruído bit a bit.");
   const stats = document.createElement("p");
   stats.textContent =
-    `${file.filename} • ${file.payload.length} bytes • ${transferReport.goodputKBs.toFixed(1)} KB/s • ` +
-    `catch ${(transferReport.catchRate * 100).toFixed(0)}% • overhead ${transferReport.overhead.toFixed(2)}x • ` +
-    `${transferReport.codesPerFrame} código(s)/quadro • ${POOL_SIZE} workers`;
+    `${file.filename} • ${file.payload.length} bytes • ${decimal(transferReport.goodputKBs, 1)} KB/s • ` +
+    `leitura ${(transferReport.catchRate * 100).toFixed(0)}% • sobrecarga ${decimal(transferReport.overhead, 2)} • ` +
+    `${transferReport.codesPerFrame} código(s)/quadro • ${POOL_SIZE} processos de leitura`;
   const download = Object.assign(document.createElement("a"), { href: "#", textContent: "Baixar arquivo" });
   download.addEventListener("click", (event) => {
     event.preventDefault();
@@ -409,7 +413,7 @@ async function finish(): Promise<void> {
     void tellSaved(downloadReport(transferReport));
   });
   resultBox.replaceChildren(verified, stats, download, " · ", reportLink);
-  statusBox.textContent = `concluído • ${transferReport.goodputKBs.toFixed(1)} KB/s • ${transferReport.durationSeconds.toFixed(1)}s`;
+  statusBox.textContent = `concluído • ${decimal(transferReport.goodputKBs, 1)} KB/s • ${decimal(transferReport.durationSeconds, 1)} s`;
 }
 
 startButton.addEventListener("click", () => void start());
