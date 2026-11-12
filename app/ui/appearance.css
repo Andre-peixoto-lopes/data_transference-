@@ -1,4 +1,18 @@
 :root { font-family: ui-monospace, Consolas, monospace; }
+.transmission-settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.transmission-settings-heading h2 { margin: 0; }
+.parameters-help { position: relative; flex-shrink: 0; width: 44px; min-height: 44px; padding: 10px; color: var(--accent); border-color: var(--line); }
+.parameters-help .icon { width: 20px; height: 20px; }
+.parameters-help-tooltip { position: absolute; top: calc(100% + 8px); right: 0; z-index: 5; width: max-content; max-width: 230px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 11px; font-weight: 400; text-align: left; pointer-events: none; visibility: hidden; }
+.parameters-help:focus-visible .parameters-help-tooltip { visibility: visible; }
+@media (hover: hover) and (pointer: fine) {
+  .parameters-help:hover .parameters-help-tooltip { visibility: visible; }
+}
+.parameter-table { margin-block: 22px; overflow-x: auto; }
+.parameter-table table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.parameter-table caption { text-align: left; color: var(--text); margin-bottom: 12px; }
+.parameter-table th, .parameter-table td { padding: 12px; border: 1px solid var(--line); text-align: left; }
+.parameter-table th { background: var(--raised); color: var(--text); font-weight: 500; }
 .brand { font-family: inherit; font-weight: 600; letter-spacing: -1px; }
 .transmission-viewport > .fullscreen-close { display: none; }
 .transmission-viewport:is(:fullscreen, .is-expanded) { display: block; width: 100vw; height: 100dvh; min-height: 0; padding: max(64px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); border: none; border-radius: 0; background: #fff; }

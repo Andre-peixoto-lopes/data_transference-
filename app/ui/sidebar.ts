@@ -2,6 +2,7 @@ import { examples } from "./examples.js";
 import { clearHistory, transferHistory, type TransferKind } from "./history.js";
 import { historyFiles } from "./history-files.js";
 import { saveFile } from "../shared/save-file.js";
+import { transmissionHelp } from "./transmission-help.js";
 
 const symbols: Record<string, string> = {
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
@@ -112,13 +113,17 @@ const how = `
     <li><h3>Salvar no dispositivo</h3><p>O botão Baixar arquivo entrega o conteúdo reconstruído. Pelo histórico lateral, você pode baixar o JSON da operação e baixar novamente arquivos recebidos de qualquer tipo, inclusive após recarregar a página. Use Limpar histórico para apagar os registros e os arquivos desta aba.</p></li>
   </ol><div class="doc-callout"><strong>Integridade não é criptografia.</strong> O SHA-256 detecta alterações no conteúdo. O fluxo óptico atual não usa senha nem criptografia: uma câmera que enxergue a transmissão pode tentar recebê-la.</div>
   <h2>Fatores que afetam o desempenho</h2><p>Foco, iluminação, reflexos, resolução da câmera, densidade do QR e taxa de quadros afetam a leitura. Recomenda-se iniciar com os parâmetros padrão e ajustar a distância para obter códigos nítidos. A simulação local usa uma grade óptica e lê os pixels diretamente; ela valida a reconstrução, mas não mede as condições reais de captura por câmera.</p>`;
+let parameterScrollY = 0;
 function showView(view: string): void {
-  const content = view === "introduction" ? introduction : view === "how" ? how : view === "examples" ? `
+  const returningFromParameters = docs.dataset.view === "parameters" && !view;
+  if (view === "parameters") parameterScrollY = window.scrollY;
+  const content = view === "parameters" ? transmissionHelp : view === "introduction" ? introduction : view === "how" ? how : view === "examples" ? `
     <div class="eyebrow">Arquivos de referência</div><h1>Arquivos para teste</h1><p class="doc-lead">Arquivos pré-carregados para ensaios de transmissão e recepção entre dispositivos.</p>
     <div class="example-catalog"></div><div class="doc-callout">Os nomes originais são preservados na transmissão e no download. O arquivo original está disponível para comparação com o conteúdo recebido.</div><h2>Procedimento de recepção</h2><p>Selecione um arquivo de teste no transmissor. No segundo dispositivo, abra Receber e enquadre os QR codes exibidos na tela.</p>` : "";
   original.hidden = !!content;
   docs.hidden = !content;
-  docs.innerHTML = content ? `<button class="doc-back secondary">← Voltar à ferramenta</button>${content}` : "";
+  docs.dataset.view = view;
+  docs.innerHTML = content ? `<button class="doc-back secondary">← ${view === "parameters" ? "Voltar à transmissão" : "Voltar à ferramenta"}</button>${content}` : "";
   if (view === "examples") {
     const list = docs.querySelector(".example-catalog")!;
     for (const example of examples) {
@@ -146,9 +151,12 @@ function showView(view: string): void {
   }
   if (mobile.matches) setOpen(false);
   window.dispatchEvent(new Event("resize"));
-  const focusTarget = content ? docs.querySelector<HTMLElement>("h1") : original.querySelector<HTMLElement>("h1");
-  if (focusTarget) { focusTarget.tabIndex = -1; focusTarget.focus(); }
-  window.scrollTo(0, 0);
+  const focusTarget = content ? docs.querySelector<HTMLElement>("h1") : returningFromParameters ? original.querySelector<HTMLElement>(".parameters-help") : original.querySelector<HTMLElement>("h1");
+  if (focusTarget) {
+    if (focusTarget.tagName === "H1") focusTarget.tabIndex = -1;
+    focusTarget.focus({ preventScroll: true });
+  }
+  window.scrollTo(0, returningFromParameters ? parameterScrollY : 0);
 }
 document.addEventListener("click", (event) => {
   const target = (event.target as Element).closest<HTMLElement>("[data-view], .doc-back");

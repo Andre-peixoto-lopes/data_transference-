@@ -46,7 +46,13 @@
 </label>
 <p class="hint">Sem arquivo selecionado, a transmissão utiliza uma amostra de texto.</p>
 <section class="settings transmission-settings" aria-labelledby="settings-title">
+<div class="transmission-settings-heading">
 <h2 id="settings-title">Parâmetros de transmissão</h2>
+<button class="parameters-help secondary" type="button" data-view="parameters" aria-label="Entender mais sobre parametros" aria-describedby="parameters-help-tooltip">
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4m0 3h.01"/></svg>
+<span class="parameters-help-tooltip" id="parameters-help-tooltip" role="tooltip">Entender mais sobre parametros</span>
+</button>
+</div>
 <p class="hint">Configure os quatro parâmetros antes de iniciar. Para aplicar alterações durante um envio, clique novamente em Transmitir arquivo.</p>
 <label class="field" for="fps">Quadros por segundo<input id="fps" type="number" inputmode="numeric" min="1" max="60" value="24"/>
 </label>
