@@ -3,6 +3,7 @@ import type { FileContainer } from "../shared/container.js";
 import { GridCodec } from "../shared/patterns/grid-codec.js";
 import { saveFile } from "../shared/save-file.js";
 import { Receiver, Transmitter } from "../shared/session.js";
+import { recordTransfer } from "../ui/history.js";
 
 const codec = new GridCodec({ cols: 32, rows: 32, cellSize: 12, margin: 16 });
 const FRAMES_PER_SECOND = 12;
@@ -38,7 +39,13 @@ async function transmit(): Promise<void> {
   resultBox.innerHTML = "";
   startButton.disabled = true;
 
-  const transmitter = await Transmitter.forFile(codec, await readSelectedFile());
+  const file = await readSelectedFile();
+  const transmitter = await Transmitter.forFile(codec, file);
+  recordTransfer("demo-send", file.filename, file.payload.length, {
+    kind: "demo-sender", startedAt: new Date().toISOString(), fileName: file.filename,
+    fileBytes: file.payload.length, k: transmitter.k, sessionId: transmitter.sessionId,
+    displayFps: FRAMES_PER_SECOND, complete: false,
+  });
   const receiver = new Receiver(codec);
   const startedAt = performance.now();
 
@@ -71,6 +78,11 @@ async function finish(receiver: Receiver, startedAt: number, framesSeen: number,
   const seconds = (performance.now() - startedAt) / 1000;
   const throughput = (restored.payload.length / 1024 / seconds).toFixed(1);
   const blob = new Blob([toArrayBufferBytes(restored.payload)], { type: restored.mediaType });
+  await recordTransfer("demo-receive", restored.filename, restored.payload.length, {
+    kind: "demo-receiver", startedAt: new Date(Date.now() - seconds * 1000).toISOString(),
+    fileName: restored.filename, fileBytes: restored.payload.length, durationSeconds: seconds,
+    framesDecoded: framesSeen, k, overhead: framesSeen / Math.max(1, k), goodputKBs: Number(throughput), complete: true,
+  }, restored.mediaType.startsWith("image/") ? new Blob([toArrayBufferBytes(restored.payload)], { type: "application/octet-stream" }) : undefined);
 
   resultBox.innerHTML =
     `<p><strong>SHA-256 OK</strong> — arquivo reconstruído bit-a-bit.</p>` +

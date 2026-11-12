@@ -1,51 +1,134 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Farol</title>
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0; min-height: 100dvh; font: 16px/1.5 system-ui, sans-serif;
-        background: #0e1116; color: #e6edf3;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 1.5rem;
-        padding: max(1.5rem, env(safe-area-inset-top)) 1.25rem max(1.5rem, env(safe-area-inset-bottom));
-      }
-      h1 { margin: 0; font-size: 2rem; letter-spacing: 0.02em; }
-      p.lead { margin: 0; max-width: 32rem; text-align: center; color: #9aa7b4; }
-      .menu { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 26rem; }
-      .card {
-        display: flex; flex-direction: column; gap: 0.2rem; text-decoration: none;
-        background: #161b22; border: 1px solid #30363d; border-radius: 14px;
-        padding: 1.25rem 1.4rem; color: #e6edf3; transition: background 0.1s;
-      }
-      .card:active { background: #1c232c; }
-      .card .emoji { font-size: 1.6rem; }
-      .card strong { font-size: 1.25rem; }
-      .card small { color: #9aa7b4; }
-      footer { color: #6b7684; font-size: 0.85rem; text-align: center; }
-      footer a { color: #2f81f7; }
-    </style>
-  </head>
-  <body>
-    <h1>Farol</h1>
-    <p class="lead">Transferência de arquivos por luz — tela para câmera, sem rede.</p>
-    <nav class="menu">
-      <a class="card" href="send/index.html">
-        <span class="emoji">📤</span>
-        <strong>Transmitir</strong>
-        <small>Escolha um arquivo; a tela vira um QR animado.</small>
-      </a>
-      <a class="card" href="receive/index.html">
-        <span class="emoji">📷</span>
-        <strong>Receber</strong>
-        <small>Aponte a câmera para a tela transmissora.</small>
-      </a>
-    </nav>
-    <footer><a href="demo/index.html">demo loopback (teste sem câmera)</a></footer>
-  </body>
+<head>
+<meta charset="utf-8"/>
+<script src="/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#191b1a"/>
+<meta name="description" content="Projeto Farol: transferência óptica de arquivos entre tela e câmera, com QR codes animados e códigos fountain LT."/>
+<title>Farol — comunicação tela-câmera</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="stylesheet" href="/app/ui/styles.css"/>
+</head>
+<body data-page="home">
+<header class="site-header">
+<a class="brand" href="/" aria-label="Farol — início">
+<img src="/favicon.svg" alt=""/>Farol</a>
+<nav class="navigation" aria-label="Navegação principal">
+<a href="/" aria-current="page">Início</a>
+<a href="/send/">Transmitir</a>
+<a href="/receive/">Receber</a>
+</nav>
+<span class="local-badge">
+<i class="dot">
+</i> Tela → câmera</span>
+</header>
+<main class="page">
+<section class="hero">
+<div>
+<div class="eyebrow">
+<i class="dot">
+</i> Projeto Farol</div>
+<h1>Comunicação<br/>tela–<em>câmera.</em>
+</h1>
+<p>Transferência óptica de arquivos com QR codes animados. Protótipo experimental para avaliação da transmissão, reconstrução e integridade dos dados.</p>
+<div class="hero-tags">
+<span>
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m5 12 4 4L19 6"/>
+</svg> Sem Wi-Fi</span>
+<span>
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m5 12 4 4L19 6"/>
+</svg> Sem Bluetooth</span>
+<span>
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m5 12 4 4L19 6"/>
+</svg> Sem cabos</span>
+</div>
+</div>
+<div class="optical" role="img" aria-label="Um arquivo passa da tela de um computador para a câmera de um celular por luz">
+<svg viewBox="0 0 440 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="m220 103 100-60v132l-100-57Z" fill="#91cfff" opacity=".035"/>
+<path d="M204 89 310 63M204 111h106M204 133l106 26" stroke="#567d9e" stroke-dasharray="3 6"/>
+<rect x="36" y="55" width="162" height="109" rx="8" fill="#222b34" stroke="#4a6680"/>
+<rect x="45" y="64" width="144" height="90" rx="3" fill="#1b222a"/>
+<path d="M101 164v19m32-19v19m-47 2h61" stroke="#66829b" stroke-width="2"/>
+<rect x="99" y="87" width="35" height="45" rx="4" stroke="#91cfff" stroke-width="1.5"/>
+<path d="M122 87v12h12m-26 9h17m-17 7h17m-17 7h10" stroke="#91cfff" stroke-width="1.5"/>
+<rect x="313" y="30" width="79" height="162" rx="13" fill="#222b34" stroke="#7ba1bf"/>
+<rect x="321" y="40" width="63" height="139" rx="6" fill="#1b222a"/>
+<path d="M343 46h19" stroke="#6287a5" stroke-linecap="round"/>
+<path d="M335 85v-9h9m17 0h9v9m0 25v9h-9m-17 0h-9v-9" stroke="#91cfff" stroke-width="1.5"/>
+<circle cx="352" cy="98" r="9" stroke="#91cfff"/>
+<circle cx="352" cy="98" r="3" fill="#91cfff"/>
+<path d="m347 148 4 4 7-8" stroke="#91cfff" stroke-width="1.5"/>
+<circle cx="245" cy="111" r="3" fill="#91cfff"/>
+</svg>
+<span class="diagram-caption">ARQUIVO → LUZ → ARQUIVO</span>
+</div>
+</section>
+<section aria-labelledby="choose">
+<div class="section-label">
+<h2 id="choose">Módulos de transferência</h2>
+<span>Transmissor e receptor</span>
+</div>
+<div class="actions">
+<a class="action-card" href="/send/">
+<span class="card-icon">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/>
+</svg>
+</span>
+<svg class="icon arrow" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M5 12h14m-6-6 6 6-6 6"/>
+</svg>
+<h3>Transmitir arquivo</h3>
+<p>Seleção do arquivo, configuração dos parâmetros e exibição dos QR codes.</p>
+<div class="card-bottom">
+<span>Abrir transmissor</span>
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<rect x="2" y="3" width="20" height="14" rx="2"/>
+<path d="M8 21h8m-4-4v4"/>
+</svg>
+</div>
+</a>
+<a class="action-card" href="/receive/">
+<span class="card-icon">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M8 6 10 3h4l2 3h5v15H3V6z"/>
+<circle cx="12" cy="13" r="4"/>
+</svg>
+</span>
+<svg class="icon arrow" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M5 12h14m-6-6 6 6-6 6"/>
+</svg>
+<h3>Receber arquivo</h3>
+<p>Captura dos QR codes, reconstrução do arquivo e verificação de integridade.</p>
+<div class="card-bottom">
+<span>Abrir o receptor</span>
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M8 6 10 3h4l2 3h5v15H3V6z"/>
+<circle cx="12" cy="13" r="4"/>
+</svg>
+</div>
+</a>
+</div>
+<a class="demo-link" href="/demo/">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m8 4 12 8-12 8z"/>
+</svg>
+<span>
+<strong>Teste de reconstrução local</strong>Simulação da transferência no mesmo dispositivo, sem captura por câmera.</span>
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M5 12h14m-6-6 6 6-6 6"/>
+</svg>
+</a>
+</section>
+</main>
+<footer class="site-footer">
+<span>Farol — Comunicação tela-câmera</span>
+</footer>
+<script type="module" src="/app/ui/interface.ts"></script>
+</body>
 </html>
-

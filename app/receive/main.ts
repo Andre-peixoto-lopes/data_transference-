@@ -6,6 +6,7 @@ import { Receiver } from "../shared/session.js";
 import { saveFile } from "../shared/save-file.js";
 import { downloadReport, type TransferReport } from "../shared/telemetry.js";
 import { ScreenWakeLock } from "../shared/wake-lock.js";
+import { recordTransfer } from "../ui/history.js";
 import type { DecodeRequest, DecodeResponse } from "./decode-worker.js";
 
 const MAX_DECODE_WIDTH = 1280; // downscale camera frames before decode; higher resolves denser QRs
@@ -390,6 +391,8 @@ async function finish(): Promise<void> {
   reportButton.hidden = true; // the result box links the final report
 
   const transferReport = buildReport(file.filename, file.payload.length, true);
+  await recordTransfer("receive", file.filename, file.payload.length, transferReport,
+    file.mediaType.startsWith("image/") ? new Blob([toArrayBufferBytes(file.payload)], { type: "application/octet-stream" }) : undefined);
   void deliverReport(transferReport);
 
   // The filename and media type arrive over the air (untrusted): text nodes only, never innerHTML,

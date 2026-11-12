@@ -1,49 +1,99 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Farol — receber</title>
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0; min-height: 100dvh; font: 16px/1.5 system-ui, sans-serif;
-        background: #0e1116; color: #e6edf3;
-        display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
-        padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
-      }
-      header { width: 100%; max-width: 560px; display: flex; align-items: center; gap: 0.75rem; }
-      header a { color: #2f81f7; text-decoration: none; font-size: 0.95rem; }
-      h1 { margin: 0; font-size: 1.2rem; }
-      p, pre { margin: 0; color: #9aa7b4; text-align: center; }
-      pre { white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; }
-      a { color: #2f81f7; }
-      button { background: #2f81f7; color: #fff; border: 0; border-radius: 10px; padding: 0.7rem 1.2rem; font-size: 1rem; min-height: 44px; cursor: pointer; }
-      button:disabled { opacity: 0.5; }
-      select { background: #161b22; color: #e6edf3; border: 1px solid #30363d; border-radius: 10px; padding: 0.6rem; font: inherit; width: 100%; max-width: 560px; min-height: 44px; }
-      .row { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 560px; }
-      .row button { flex: 1 1 auto; }
-      video.camera { width: 100%; max-width: 560px; height: auto; background: #000; border-radius: 10px; }
-      progress { width: 100%; max-width: 560px; height: 16px; }
-      #result { text-align: center; max-width: 560px; }
-    </style>
-  </head>
-  <body>
-    <header>
-      <a href="../index.html">← Início</a>
-      <h1>Receber</h1>
-    </header>
-    <p>Aponte a câmera para a tela transmissora (<a href="../send/index.html">Transmitir</a>).</p>
-    <div class="row">
-      <button id="start">Iniciar câmera</button>
-      <button id="report" hidden>Exportar diagnóstico</button>
-    </div>
-    <select id="cameraSelect" hidden aria-label="Câmera"></select>
-    <video id="camera" class="camera" playsinline muted></video>
-    <progress id="prog" max="1" value="0"></progress>
-    <pre id="status">toque em "Iniciar câmera".</pre>
-    <div id="result"></div>
-    <script type="module" src="/app/receive/main.ts"></script>
-  </body>
+<head>
+<meta charset="utf-8"/>
+<script src="/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#191b1a"/>
+<meta name="description" content="Receba arquivos apontando a câmera para a tela transmissora."/>
+<title>Farol — receber</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="stylesheet" href="/app/ui/styles.css"/>
+</head>
+<body data-page="receive">
+<header class="site-header">
+<a class="brand" href="/" aria-label="Farol — início">
+<img src="/favicon.svg" alt=""/>Farol</a>
+<nav class="navigation" aria-label="Navegação principal">
+<a href="/">Início</a>
+<a href="/send/">Transmitir</a>
+<a href="/receive/" aria-current="page">Receber</a>
+</nav>
+<span class="local-badge">
+<i class="dot">
+</i> Tela → câmera</span>
+</header>
+<main class="page tool-page">
+<a class="back" href="/">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M19 12H5m6-6-6 6 6 6"/>
+</svg> Voltar ao início</a>
+<div class="tool-heading">
+<div class="eyebrow">Câmera → arquivo</div>
+<h1>Recepção de arquivos</h1>
+<p>Aponte a câmera para a tela transmissora e mantenha o QR code no enquadramento.</p>
+</div>
+<div class="workspace">
+<section class="panel receive-settings">
+<h2>Conectar a câmera</h2>
+<p class="hint">Permita o acesso à câmera para ler os códigos e reconstruir o arquivo neste dispositivo.</p>
+<div class="buttons">
+<button id="start">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M8 6 10 3h4l2 3h5v15H3V6z"/>
+<circle cx="12" cy="13" r="4"/>
+</svg> Iniciar câmera</button>
+<button id="report" class="secondary" hidden>Exportar diagnóstico</button>
+</div>
+<select id="cameraSelect" hidden aria-label="Selecionar câmera">
+</select>
+<div class="instructions">
+<h3>Condições de captura</h3>
+<ol>
+<li>Abra <a href="/send/">Transmitir</a> no dispositivo de origem.</li>
+<li>Enquadre o QR code inteiro na câmera.</li>
+<li>Mantenha os dispositivos estáveis e aguarde.</li>
+<li>Salve o arquivo quando a verificação terminar.</li>
+</ol>
+</div>
+<p class="hint">A câmera precisa de HTTPS ou localhost no navegador.</p>
+</section>
+<section class="panel preview-panel" aria-label="Recepção pela câmera">
+<div class="panel-title">Visão da câmera<span>Receptor</span>
+</div>
+<div class="viewport">
+<video id="camera" class="camera" playsinline muted aria-label="Imagem da câmera receptora">
+</video>
+<div class="empty-preview">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M8 6 10 3h4l2 3h5v15H3V6z"/>
+<circle cx="12" cy="13" r="4"/>
+</svg>
+<strong>Aguardando ativação da câmera</strong>
+<small>Inicie a câmera para enquadrar a tela transmissora.</small>
+</div>
+</div>
+<p class="preview-note">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>
+</svg> A integridade do arquivo é verificada ao final.</p>
+<div class="status-block">
+<div class="status-label">Status da transferência</div>
+<progress id="prog" max="1" value="0" aria-label="Progresso da recepção">
+</progress>
+<pre id="status" role="status">Toque em Iniciar câmera para começar.</pre>
+</div>
+<div id="result">
+</div>
+</section>
+</div>
+</main>
+<footer class="site-footer">
+<span>Farol — Comunicação tela-câmera</span>
+</footer>
+<script type="module" src="/app/ui/interface.ts">
+</script>
+<script type="module" src="/app/receive/main.ts">
+</script>
+</body>
 </html>

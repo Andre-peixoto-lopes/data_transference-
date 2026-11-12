@@ -1,0 +1,81 @@
+:root { font-family: ui-monospace, Consolas, monospace; }
+.brand { font-family: inherit; font-weight: 600; letter-spacing: -1px; }
+.transmission-viewport > .fullscreen-close { display: none; }
+.transmission-viewport:is(:fullscreen, .is-expanded) { display: block; width: 100vw; height: 100dvh; min-height: 0; padding: max(64px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); border: none; border-radius: 0; background: #fff; }
+.transmission-viewport:is(:fullscreen, .is-expanded) canvas.screen { width: 100%; height: 100%; max-width: none; aspect-ratio: auto !important; background: #fff; }
+.transmission-viewport:is(:fullscreen, .is-expanded) > .fullscreen-close { display: inline-flex; position: absolute; top: max(12px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); width: 40px; min-height: 40px; padding: 8px; z-index: 2; background: #222b34; color: #fff; border: 1px solid #4c6072; border-radius: 8px; }
+.transmission-viewport:is(:fullscreen, .is-expanded) > .fullscreen-close:hover { background: #3a5063; color: #fff; }
+.transmission-viewport:is(:fullscreen, .is-expanded) > .fullscreen-close:focus-visible { outline-color: #205f96; }
+.transmission-viewport:is(:fullscreen, .is-expanded) .empty-preview { inset: 64px 24px 24px; }
+select {
+  appearance: none;
+  min-height: 48px;
+  padding: 12px 40px 12px 14px;
+  border: 1px solid #49647c;
+  border-radius: 9px;
+  background-color: #1c2a38;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2391cfff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  color: #e1effa;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px #00000018;
+  transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+select:hover { background-color: #23384b; border-color: #7cb9e2; }
+select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); box-shadow: 0 0 0 4px #91cfff18; }
+select option { background: #1c2a38; color: #e1effa; padding: 12px; }
+.transmission-settings input[type=number] { min-height: 48px; background: #1c2a38; border-color: #49647c; border-radius: 9px; }
+.transmission-settings .field small { font-size: 10px; font-weight: 400; color: var(--muted); line-height: 1.7; }
+.theme-toggle { width: 36px; min-height: 36px; padding: 8px; flex-shrink: 0; color: var(--accent); border-color: var(--line); background: transparent; }
+.theme-toggle .icon { width: 18px; height: 18px; }
+.theme-toggle:hover { color: var(--text); background: var(--raised); }
+
+:root[data-theme=light] {
+  color-scheme: light;
+  --bg: #f3f6fa;
+  --surface: #ffffff;
+  --raised: #e8eff7;
+  --line: #ced9e4;
+  --text: #172e44;
+  --muted: #536c82;
+  --accent: #205f96;
+  --ink: #ffffff;
+}
+[data-theme=light] .sidebar { background: #eaf0f7; border-color: #c5d4e2; }
+[data-theme=light] .sidebar-nav a, [data-theme=light] .sidebar-nav button { color: #274b68; }
+[data-theme=light] .sidebar-nav .icon, [data-theme=light] .sidebar-label, [data-theme=light] .sidebar-close { color: #466883; }
+[data-theme=light] .sidebar-nav a:hover, [data-theme=light] .sidebar-nav button:hover, [data-theme=light] .history-entry:hover { background: #dde8f3; color: #153c5f; }
+[data-theme=light] .sidebar-nav [aria-current=page] { background: #d4e6f6; color: #194b77; border-color: #aacbe5; }
+[data-theme=light] .sidebar-note { color: #536c82; border-color: #c5d4e2; }
+[data-theme=light] .history-empty, [data-theme=light] .history-entry small { color: #58718a; }
+[data-theme=light] .history-entry { color: #254a69; }
+[data-theme=light] .secondary { color: #234d70; border-color: #b1c6d9; }
+[data-theme=light] button:hover, [data-theme=light] .button:hover { background: #184f80; color: white; }
+[data-theme=light] .secondary:hover { background: #e0ebf5; color: #173e62; }
+[data-theme=light] .action-card:hover { background: #f2f8fe; border-color: #7ba8ce; }
+[data-theme=light] .action-card .card-icon { background: #e6f1fb; color: #205f96; border-color: #b3d0e7; }
+[data-theme=light] .hero-tags, [data-theme=light] .card-bottom, [data-theme=light] .how strong { color: #365c7b; }
+[data-theme=light] .how b, [data-theme=light] .site-footer { color: #5a7590; }
+[data-theme=light] .upload { background: #f6faff; border-color: #88accb; }
+[data-theme=light] .upload:hover, [data-theme=light] .upload.dragging { background: #e8f4ff; }
+[data-theme=light] .transmission-settings, [data-theme=light] .doc-callout, [data-theme=light] .flow-line { background: #e8f2fb; border-color: #aecce5; color: #294e6c; }
+[data-theme=light] .transmission-settings h2 { color: #205c8c; }
+[data-theme=light] .transmission-settings .field { color: #365c7b; }
+[data-theme=light] select, [data-theme=light] select option, [data-theme=light] .transmission-settings input[type=number] { background-color: #fff; color: #173e62; border-color: #9bb8d0; }
+[data-theme=light] select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23205f96' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E"); }
+[data-theme=light] select:hover { border-color: #276ca7; background-color: #f4f9ff; }
+[data-theme=light] .empty-preview { background: #edf3f9; color: #57748e; }
+[data-theme=light] .empty-preview strong { color: #335673; }
+[data-theme=light] .empty-preview .icon { color: #648cad; }
+[data-theme=light] .viewport { background: #e9f0f8; }
+[data-theme=light] pre { color: #315773; }
+[data-theme=light] #result { background: #edf6fd; border-color: #aacde7; }
+[data-theme=light] .doc-steps li, [data-theme=light] .example-card, [data-theme=light] .history-dialog { background: #fff; border-color: #c3d4e3; }
+[data-theme=light] .doc-steps p, [data-theme=light] .doc-lead, [data-theme=light] .documentation-page > p, [data-theme=light] .example-card p, [data-theme=light] .history-detail p { color: #48667f; }
+[data-theme=light] .doc-steps li::before { color: #276aa1; }
+[data-theme=light] .optical { background: #e8f0f8; }
+[data-theme=light] .optical svg { filter: brightness(.85) saturate(1.25); }
+[data-theme=light] .history-heading .clear-history { background: transparent; color: var(--muted); }
+[data-theme=light] .history-heading .clear-history:hover { background: transparent; color: var(--text); }

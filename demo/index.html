@@ -1,60 +1,93 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Farol — demo loopback</title>
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0; font: 15px/1.5 system-ui, sans-serif; background: #0e1116; color: #e6edf3;
-        display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1.5rem 1rem 4rem;
-      }
-      h1 { margin: 0; font-size: 1.3rem; text-align: center; }
-      p.lead { margin: 0; max-width: 46rem; text-align: center; color: #9aa7b4; }
-      .controls { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: center; }
-      button { background: #2f81f7; color: white; border: 0; border-radius: 8px; padding: 0.6rem 1.1rem; font-size: 1rem; cursor: pointer; }
-      button:disabled { opacity: 0.5; cursor: default; }
-      .stage { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
-      figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-      figcaption { color: #9aa7b4; font-size: 0.85rem; }
-      canvas { max-width: min(90vw, 360px); height: auto; background: white; border-radius: 6px; image-rendering: pixelated; }
-      progress { width: min(90vw, 320px); height: 14px; }
-      pre { margin: 0; color: #9aa7b4; }
-      #result { min-height: 2rem; text-align: center; }
-      #result a { color: #2f81f7; }
-      .hub { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
-      .hub a { color: #2f81f7; }
-    </style>
-  </head>
-  <body>
-    <h1>Farol — demo loopback</h1>
-    <nav class="hub">
-      <a href="../index.html">Início</a>
-      <a href="../send/index.html">Transmitir</a>
-      <a href="../receive/index.html">Receber</a>
-    </nav>
-    <p class="lead">
-      Demo sem câmera: o transmissor vira o arquivo em padrões ópticos e o
-      decodificador lê os próprios pixels de volta (câmera simulada), reconstrói e
-      verifica o SHA-256.
-    </p>
-    <div class="controls">
-      <input id="file" type="file" />
-      <button id="start">Transmitir</button>
-    </div>
-    <div class="stage">
-      <figure>
-        <figcaption>Transmissor (tela)</figcaption>
-        <canvas id="screen"></canvas>
-      </figure>
-      <div>
-        <p><progress id="prog" max="1" value="0"></progress></p>
-        <pre id="status">pronto.</pre>
-      </div>
-    </div>
-    <div id="result"></div>
-    <script type="module" src="/app/demo/main.ts"></script>
-  </body>
+<head>
+<meta charset="utf-8"/>
+<script src="/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#191b1a"/>
+<meta name="description" content="Simulação local da transferência óptica, com reconstrução do arquivo e verificação SHA-256, sem captura por câmera."/>
+<title>Farol — demonstração</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="stylesheet" href="/app/ui/styles.css"/>
+</head>
+<body data-page="demo">
+<header class="site-header">
+<a class="brand" href="/" aria-label="Farol — início">
+<img src="/favicon.svg" alt=""/>Farol</a>
+<nav class="navigation" aria-label="Navegação principal">
+<a href="/">Início</a>
+<a href="/send/">Transmitir</a>
+<a href="/receive/">Receber</a>
+</nav>
+<span class="local-badge">
+<i class="dot">
+</i> Tela → câmera</span>
+</header>
+<main class="page tool-page">
+<a class="back" href="/">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M19 12H5m6-6-6 6 6 6"/>
+</svg> Voltar ao início</a>
+<div class="tool-heading">
+<div class="eyebrow">Simulação local</div>
+<h1>Teste de reconstrução</h1>
+<p>Um teste no mesmo dispositivo: o receptor lê os pixels da tela, sem usar a câmera.</p>
+</div>
+<div class="workspace">
+<section class="panel">
+<h2>Arquivo de demonstração</h2>
+<label class="upload">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/>
+</svg>
+<strong data-file-name>Escolher arquivo</strong>
+<small>Clique ou arraste um arquivo aqui</small>
+<input type="file" id="file" aria-label="Escolher arquivo para transmitir"/>
+</label>
+<p class="hint">Sem selecionar um arquivo, o teste usa uma amostra de 4 KB.</p>
+<div class="buttons">
+<button id="start">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m8 4 12 8-12 8z"/>
+</svg> Transmitir</button>
+</div>
+<div class="instructions">
+<h3>Procedimento do teste</h3>
+<p class="hint">O arquivo é codificado em padrões ópticos. O receptor simulado lê os pixels, reconstrói o conteúdo e verifica o SHA-256.</p>
+<p class="hint">Para testar entre dois dispositivos, use Transmitir e Receber.</p>
+</div>
+</section>
+<section class="panel preview-panel" aria-label="Demonstração da transferência">
+<div class="panel-title">Transmissor simulado<span>Teste sem câmera</span>
+</div>
+<div class="viewport">
+<canvas id="screen" class="demo-canvas" aria-label="Padrões ópticos de demonstração">
+</canvas>
+<div class="empty-preview">
+<svg class="icon " viewBox="0 0 24 24" aria-hidden="true">
+<path d="m13 2-8 12h6l-1 8 9-12h-6z"/>
+</svg>
+<strong>Aguardando início do teste</strong>
+<small>Selecione um arquivo ou utilize a amostra de 4 KB.</small>
+</div>
+</div>
+<div class="status-block">
+<div class="status-label">Status da transferência</div>
+<progress id="prog" max="1" value="0" aria-label="Progresso da recepção">
+</progress>
+<pre id="status" role="status">Pronto para testar.</pre>
+</div>
+<div id="result">
+</div>
+</section>
+</div>
+</main>
+<footer class="site-footer">
+<span>Farol — Comunicação tela-câmera</span>
+</footer>
+<script type="module" src="/app/ui/interface.ts">
+</script>
+<script type="module" src="/app/demo/main.ts">
+</script>
+</body>
 </html>

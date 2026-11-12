@@ -1,0 +1,116 @@
+/* Touch layouts share the same breakpoints as the sidebar controller. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.hero > *, .workspace > *, .actions > *, .panel-title > *, .doc-actions > * { min-width: 0; }
+html.transmission-expanded, .transmission-expanded body { overflow: hidden; }
+.transmission-viewport.is-expanded { position: fixed; inset: 0; z-index: 100; touch-action: none; }
+
+@media (max-width: 1023px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .hero p { max-width: 650px; }
+  .optical { display: none; }
+  .site-header { gap: 16px; }
+  .sidebar-toggle, .sidebar-close, .theme-toggle { width: 44px; min-height: 44px; }
+  .sidebar { width: min(340px, calc(100% - 32px)); padding-bottom: max(24px, env(safe-area-inset-bottom)); scrollbar-gutter: stable; }
+  .sidebar-nav a, .sidebar-nav button { min-height: 48px; font-size: 13px; }
+  .history-entry { min-height: 48px; }
+  .history-entry strong { font-size: 12px; }
+  .history-entry small { font-size: 11px; }
+  .history-heading .clear-history { min-height: 44px; padding-inline: 8px; font-size: 10px; }
+  .history-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+  .history-dialog form button { width: 44px; min-height: 44px; }
+  .preview-panel { scroll-margin-top: 20px; }
+  .transmission-viewport:is(:fullscreen, .is-expanded) > .fullscreen-close { width: 44px; min-height: 44px; }
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    height: auto;
+    min-height: 116px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 8px 12px;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+  }
+  .sidebar-toggle { grid-column: 1; grid-row: 1; }
+  .site-header > .brand { grid-column: 2; grid-row: 1; margin: 0; justify-self: start; gap: 8px; font-size: 23px; }
+  .site-header > .brand img { width: 34px; height: 34px; }
+  .theme-toggle { grid-column: 3; grid-row: 1; }
+  .site-header .navigation { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .site-header .navigation a, .site-header .navigation a:first-child { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 4px; font-size: 12px; }
+  .page, .site-footer { width: auto; margin-left: max(16px, env(safe-area-inset-left)); margin-right: max(16px, env(safe-area-inset-right)); }
+  .page { padding-top: 28px; padding-bottom: 24px; }
+  .hero { margin-bottom: 30px; }
+  .hero h1 { font-size: clamp(28px, 8.5vw, 42px); letter-spacing: -1.3px; }
+  .hero p { font-size: 14px; line-height: 1.8; }
+  .eyebrow { font-size: 10px; letter-spacing: 1.4px; }
+  .hero-tags { flex-wrap: wrap; gap: 10px 16px; margin-top: 20px; font-size: 11px; }
+  .section-label { flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .section-label h2 { font-size: 14px; }
+  .section-label span { font-size: 11px; }
+  .actions { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .action-card { padding: 22px; }
+  .action-card h3 { font-size: 23px; }
+  .action-card p { font-size: 13px; }
+  .card-bottom { font-size: 11px; }
+  .demo-link { align-items: flex-start; padding: 18px 16px; font-size: 12px; gap: 10px; }
+  .demo-link > span { min-width: 0; }
+  .demo-link > .icon:last-child { margin-top: 3px; }
+  .tool-heading { margin-bottom: 22px; }
+  .tool-heading h1, .documentation-page h1 { font-size: clamp(26px, 7.4vw, 36px); line-height: 1.2; letter-spacing: -1px; overflow-wrap: anywhere; }
+  .tool-heading p { font-size: 14px; }
+  .back { min-height: 44px; font-size: 12px; margin-bottom: 16px; }
+  .panel { padding: 18px; }
+  .panel h2, .panel-title { font-size: 14px; }
+  .panel-title { gap: 8px; flex-wrap: wrap; }
+  .panel-title span { font-size: 11px; }
+  .hint, .instructions ol { font-size: 12px; }
+  .instructions h3 { font-size: 13px; }
+  .instructions li { padding-block: 7px; }
+  .upload { padding: 24px 12px; }
+  .upload strong { font-size: 14px; }
+  .upload small { font-size: 11px; }
+  .transmission-settings { padding: 18px 12px; }
+  .transmission-settings .field { font-size: 12px; gap: 9px; margin-top: 20px; }
+  /* A 16px font avoids automatic form zoom on small-screen browsers. */
+  select, input[type=number], .transmission-settings input[type=number] { font-size: 16px; min-height: 50px; max-width: 100%; }
+  .field select { min-width: 0; }
+  .buttons { gap: 12px; margin-top: 20px; }
+  .button, button { min-height: 48px; font-size: 13px; }
+  .viewport:not(:fullscreen):not(.is-expanded) { min-height: 0; }
+  .viewport:not(:fullscreen):not(.is-expanded) video { min-height: 0; aspect-ratio: 3 / 4; max-height: 65dvh; }
+  .empty-preview { padding: 16px; gap: 8px; }
+  .empty-preview .icon { width: 32px; height: 32px; margin-bottom: 2px; }
+  .empty-preview strong { font-size: 12px; }
+  .empty-preview small { font-size: 11px; }
+  .preview-note { align-items: flex-start; font-size: 11px; }
+  .preview-note .icon { margin-top: 2px; }
+  .demo-canvas { max-width: 100%; }
+  pre { font-size: 12px; line-height: 1.8; }
+  #result { padding: 16px; font-size: 13px; }
+  #result a { display: flex; align-items: center; min-height: 44px; margin: 8px 0 0; }
+  .doc-back { min-height: 44px; margin-bottom: 24px; font-size: 12px; }
+  .documentation-page { padding-bottom: 32px; }
+  .documentation-page > h2 { font-size: 21px; }
+  .doc-steps li { padding: 20px 16px 20px 46px; }
+  .doc-steps li::before { left: 14px; font-size: 11px; }
+  .doc-steps h3 { font-size: 15px; }
+  .doc-steps p { font-size: 13px; }
+  .doc-callout { padding: 16px; margin-block: 24px; }
+  .flow-line { padding: 16px; gap: 10px; }
+  .example-card { padding: 20px 16px; }
+  .example-card h2 { font-size: 18px; }
+  .doc-actions { flex-direction: column; gap: 10px; margin-top: 20px; }
+  .doc-actions > * { width: 100%; }
+  .history-dialog { width: calc(100% - 24px); max-height: calc(100dvh - 24px); padding: 20px; }
+  .history-dialog h2 { font-size: 21px; line-height: 1.4; overflow-wrap: anywhere; }
+  .history-detail p { font-size: 13px; }
+  .site-footer { padding-top: 20px; padding-bottom: max(24px, env(safe-area-inset-bottom)); font-size: 11px; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 1023px) {
+  .sidebar-top { margin-bottom: 8px; }
+  .sidebar-label { margin-top: 16px; }
+  .viewport:not(:fullscreen):not(.is-expanded) video { aspect-ratio: 16 / 9; max-height: 75dvh; }
+  .transmission-viewport:is(:fullscreen, .is-expanded) { padding-top: max(56px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}

@@ -11,6 +11,8 @@ import {
 import { createPrng } from "../shared/prng.js";
 import { Transmitter } from "../shared/session.js";
 import { ScreenWakeLock } from "../shared/wake-lock.js";
+import { recordTransfer } from "../ui/history.js";
+import { selectedExample } from "../ui/examples.js";
 
 const fileInput = document.querySelector<HTMLInputElement>("#file")!;
 const fpsInput = document.querySelector<HTMLInputElement>("#fps")!;
@@ -20,6 +22,8 @@ const codesSelect = document.querySelector<HTMLSelectElement>("#codes")!;
 const startButton = document.querySelector<HTMLButtonElement>("#start")!;
 const benchmarkButton = document.querySelector<HTMLButtonElement>("#benchmark")!;
 const fullscreenButton = document.querySelector<HTMLButtonElement>("#fullscreen")!;
+const fullscreenStage = document.querySelector<HTMLDivElement>("#fullscreen-stage")!;
+const exitFullscreenButton = document.querySelector<HTMLButtonElement>("#exit-fullscreen")!;
 const screen = document.querySelector<HTMLCanvasElement>("#screen")!;
 const statusBox = document.querySelector<HTMLPreElement>("#status")!;
 const context = screen.getContext("2d")!;
@@ -48,6 +52,8 @@ function benchmarkFile(): FileContainer {
 async function readSelectedFile(): Promise<FileContainer> {
   const file = fileInput.files?.[0];
   if (!file) {
+    const example = await selectedExample();
+    if (example) return example;
     const payload = new TextEncoder().encode("Farol — arquivo de teste transmitido por luz.\n".repeat(6));
     return { filename: "amostra.txt", mediaType: "text/plain", payload };
   }
@@ -66,7 +72,7 @@ function populateVersions(): void {
   for (const version of QR_VERSIONS) {
     const option = document.createElement("option");
     option.value = String(version);
-    option.textContent = `QR v${version} — ${qrByteCapacity(version, ecc)} B/código`;
+    option.textContent = `QR v${version} · ${qrByteCapacity(version, ecc)} B`;
     option.selected = version === selected;
     versionSelect.append(option);
   }
@@ -146,6 +152,12 @@ async function start(override?: FileContainer): Promise<void> {
       `${decimal(displayFps, 1)} quadros/s (${refreshHz.toFixed(0)} Hz ÷ ${vsyncsPerFrame}) ≈ ${decimal(grossKBs, 1)} KB/s bruto`;
 
     show(transmitter.renderFrame(0));
+    recordTransfer("send", file.filename, file.payload.length, {
+      kind: "sender", startedAt: new Date().toISOString(), complete: false,
+      sessionId: transmitter.sessionId, fileName: file.filename, fileBytes: file.payload.length,
+      payloadBytes: transmitter.payloadBytes, k: transmitter.k, qrVersion: version, ecc, codes,
+      targetFps, displayFps, refreshHz, userAgent: navigator.userAgent,
+    });
     void wakeLock.acquire();
     if (REPORT_KEY !== null) {
       void postDiagnostics(
@@ -210,9 +222,59 @@ benchmarkButton.addEventListener("click", () => void start(benchmarkFile()));
 
 // Fullscreen makes each QR module physically larger, so a phone camera locks
 // focus from a comfortable distance and reads denser frames.
-fullscreenButton.addEventListener("click", () => {
-  if (document.fullscreenElement) void document.exitFullscreen();
-  else void screen.requestFullscreen();
+let expandedInPage = false;
+let suspendedControls: HTMLElement[] = [];
+function expandInPage(expand: boolean): void {
+  expandedInPage = expand;
+  fullscreenStage.classList.toggle("is-expanded", expand);
+  document.documentElement.classList.toggle("transmission-expanded", expand);
+  if (expand) {
+    fullscreenStage.setAttribute("role", "dialog");
+    fullscreenStage.setAttribute("aria-modal", "true");
+    fullscreenStage.setAttribute("aria-label", "Transmissão em tela cheia");
+    suspendedControls = [...document.querySelectorAll<HTMLElement>("a, button, input, select")]
+      .filter((control) => !fullscreenStage.contains(control) && !control.inert);
+    for (const control of suspendedControls) control.inert = true;
+    exitFullscreenButton.focus();
+  } else {
+    for (const control of suspendedControls) control.inert = false;
+    suspendedControls = [];
+    fullscreenStage.removeAttribute("role");
+    fullscreenStage.removeAttribute("aria-modal");
+    fullscreenStage.removeAttribute("aria-label");
+    fullscreenButton.focus({ preventScroll: true });
+  }
+  window.dispatchEvent(new Event("resize"));
+}
+async function changeFullscreen(enter: boolean): Promise<void> {
+  try {
+    if (enter) {
+      // Use an in-page expanded view when element fullscreen is unavailable.
+      if (!document.fullscreenEnabled || !fullscreenStage.requestFullscreen) expandInPage(true);
+      else {
+        try { await fullscreenStage.requestFullscreen(); }
+        catch { expandInPage(true); }
+      }
+    }
+    else if (expandedInPage) expandInPage(false);
+    else if (document.fullscreenElement) await document.exitFullscreen();
+  } catch (error) {
+    statusBox.textContent = `não foi possível alterar a tela cheia: ${(error as Error).message}`;
+  }
+}
+fullscreenButton.addEventListener("click", () => void changeFullscreen(!document.fullscreenElement && !expandedInPage));
+exitFullscreenButton.addEventListener("click", () => void changeFullscreen(false));
+document.addEventListener("keydown", (event) => {
+  if (!expandedInPage) return;
+  if (event.key === "Escape") { event.preventDefault(); void changeFullscreen(false); }
+  if (event.key === "Tab") { event.preventDefault(); exitFullscreenButton.focus(); }
+});
+let wasFullscreen = false;
+document.addEventListener("fullscreenchange", () => {
+  const isFullscreen = document.fullscreenElement === fullscreenStage;
+  if (isFullscreen) exitFullscreenButton.focus();
+  else if (wasFullscreen) fullscreenButton.focus({ preventScroll: true });
+  wasFullscreen = isFullscreen;
 });
 for (const event of ["resize", "fullscreenchange"]) {
   window.addEventListener(event, () => {
