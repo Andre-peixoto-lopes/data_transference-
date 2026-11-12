@@ -392,7 +392,7 @@ async function finish(): Promise<void> {
 
   const transferReport = buildReport(file.filename, file.payload.length, true);
   await recordTransfer("receive", file.filename, file.payload.length, transferReport,
-    file.mediaType.startsWith("image/") ? new Blob([toArrayBufferBytes(file.payload)], { type: "application/octet-stream" }) : undefined);
+    new Blob([toArrayBufferBytes(file.payload)], { type: "application/octet-stream" }));
   void deliverReport(transferReport);
 
   // The filename and media type arrive over the air (untrusted): text nodes only, never innerHTML,

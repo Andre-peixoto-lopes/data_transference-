@@ -1,23 +1,47 @@
-import { describe, expect, it } from "vitest";
-import { TemporaryHistory } from "./history.js";
-import { HistoryFiles } from "./history-files.js";
+import { describe, expect, it, vi } from "vitest";
+import { recordTransfer, TemporaryHistory, transferHistory } from "./history.js";
+import { HistoryFiles, historyFiles } from "./history-files.js";
 
 function tabStorage(): Pick<Storage, "getItem" | "setItem" | "removeItem"> {
   const data = new Map<string, string>();
   return { getItem: (key) => data.get(key) ?? null, setItem: (key, value) => { data.set(key, value); }, removeItem: (key) => { data.delete(key); } };
 }
 describe("temporary transfer history lifecycle", () => {
-  it("preserves the original JSON report and received-image reference during navigation", () => {
+  it("preserves the original JSON report and received-document reference during navigation", () => {
     const storage = tabStorage();
-    const report = { complete: true, fileName: "UniAnchieta.png", fileBytes: 70314, durationSeconds: 12.5, sessionId: 42 };
+    const report = { complete: true, fileName: "documento.docx", fileBytes: 70314, durationSeconds: 12.5, sessionId: 42 };
     const history = new TemporaryHistory(storage);
-    history.add("receive", "UniAnchieta.png", 70314, report, true);
+    history.add("receive", "documento.docx", 70314, report, true);
     const restored = new TemporaryHistory(storage).list()[0];
     expect(JSON.parse(JSON.stringify(restored.report))).toEqual(report);
-    expect(restored.hasImage).toBe(true);
+    expect(restored.hasFile).toBe(true);
     expect(new TemporaryHistory(storage).list()[0].report).toEqual(report);
     history.clear();
     expect(new TemporaryHistory(storage).list()).toEqual([]);
+  });
+  it("restores image references saved by earlier versions", () => {
+    const storage = tabStorage();
+    const legacyEntry = { id: "old-image", kind: "receive", filename: "foto.png", bytes: 4, at: Date.now(), hasImage: true };
+    storage.setItem("farol:temporary-transfers", JSON.stringify([legacyEntry]));
+    expect(new TemporaryHistory(storage).list()[0]).toEqual(legacyEntry);
+  });
+  it.each(["receive", "demo-receive"] as const)("retains document bytes through %s recording for history downloads", async (kind) => {
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal("window", { dispatchEvent });
+    try {
+      const bytes = new Uint8Array([80, 75, 3, 4, 0, 255]);
+      const file = new Blob([bytes], { type: "application/octet-stream" });
+      await recordTransfer(kind, "documento.docx", bytes.length, { complete: true }, file);
+      const entry = transferHistory.list()[0];
+      expect(entry.filename).toBe("documento.docx");
+      expect(entry.hasFile).toBe(true);
+      expect(new Uint8Array(await (await historyFiles.get(entry.id))!.arrayBuffer())).toEqual(bytes);
+      expect(dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ type: "farol:history" }));
+    } finally {
+      transferHistory.clear();
+      await historyFiles.clear();
+      vi.unstubAllGlobals();
+    }
   });
   it("retains received image bytes for downloads when IndexedDB is unavailable", async () => {
     const files = new HistoryFiles("test-memory");

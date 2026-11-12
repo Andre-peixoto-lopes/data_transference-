@@ -82,7 +82,7 @@ async function finish(receiver: Receiver, startedAt: number, framesSeen: number,
     kind: "demo-receiver", startedAt: new Date(Date.now() - seconds * 1000).toISOString(),
     fileName: restored.filename, fileBytes: restored.payload.length, durationSeconds: seconds,
     framesDecoded: framesSeen, k, overhead: framesSeen / Math.max(1, k), goodputKBs: Number(throughput), complete: true,
-  }, restored.mediaType.startsWith("image/") ? new Blob([toArrayBufferBytes(restored.payload)], { type: "application/octet-stream" }) : undefined);
+  }, new Blob([toArrayBufferBytes(restored.payload)], { type: "application/octet-stream" }));
 
   resultBox.innerHTML =
     `<p><strong>SHA-256 OK</strong> — arquivo reconstruído bit-a-bit.</p>` +

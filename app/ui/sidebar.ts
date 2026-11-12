@@ -109,7 +109,7 @@ const how = `
     <li><h3>Exibir e capturar pela luz</h3><p>O transmissor desenha a sequência na tela. A câmera do receptor captura as imagens, e processos de leitura usam zxing-wasm para decodificar os QR codes. Não há canal de retorno: o receptor não pede um quadro específico novamente.</p></li>
     <li><h3>Acumular informação e reconstruir</h3><p>O receptor identifica a sessão, ignora repetições e acumula os símbolos válidos. Ele usa peeling e eliminação gaussiana para resolver os blocos originais. Quadros perdidos podem aumentar o tempo necessário. O total de imagens para concluir varia conforme a informação recuperada.</p></li>
     <li><h3>Conferir o conteúdo original</h3><p>Com o container recuperado, o receptor descompacta o conteúdo, se necessário, e recalcula o SHA-256. O arquivo só é oferecido quando a verificação passa. Se houver falha, a recepção é reiniciada.</p></li>
-    <li><h3>Salvar no dispositivo</h3><p>O botão Baixar arquivo entrega o conteúdo reconstruído. Pelo histórico lateral, você pode baixar o JSON da operação e baixar novamente imagens recebidas, inclusive após recarregar a página. Use Limpar histórico para apagar os registros e as imagens desta aba.</p></li>
+    <li><h3>Salvar no dispositivo</h3><p>O botão Baixar arquivo entrega o conteúdo reconstruído. Pelo histórico lateral, você pode baixar o JSON da operação e baixar novamente arquivos recebidos de qualquer tipo, inclusive após recarregar a página. Use Limpar histórico para apagar os registros e os arquivos desta aba.</p></li>
   </ol><div class="doc-callout"><strong>Integridade não é criptografia.</strong> O SHA-256 detecta alterações no conteúdo. O fluxo óptico atual não usa senha nem criptografia: uma câmera que enxergue a transmissão pode tentar recebê-la.</div>
   <h2>Fatores que afetam o desempenho</h2><p>Foco, iluminação, reflexos, resolução da câmera, densidade do QR e taxa de quadros afetam a leitura. Recomenda-se iniciar com os parâmetros padrão e ajustar a distância para obter códigos nítidos. A simulação local usa uma grade óptica e lê os pixels diretamente; ela valida a reconstrução, mas não mede as condições reais de captura por câmera.</p>`;
 function showView(view: string): void {
@@ -218,7 +218,7 @@ function renderHistory(): void {
           download.disabled = true; feedback.textContent = "Preparando download…";
           try {
             const blob = await load();
-            if (!blob) throw new Error("Esta imagem não está mais disponível. Faça uma nova recepção para baixá-la pelo histórico.");
+            if (!blob) throw new Error("Este arquivo não está mais disponível. Faça uma nova recepção para baixá-lo pelo histórico.");
             const location = await saveFile(blob, filename);
             feedback.textContent = location ? `Salvo em ${location}` : "Download solicitado.";
           } catch (error) { feedback.textContent = (error as Error).message; }
@@ -229,7 +229,7 @@ function renderHistory(): void {
       addDownload("Baixar JSON", `farol-${entry.kind}-${entry.at}.json`, async () => new Blob([
         JSON.stringify(entry.report ?? { kind: entry.kind, fileName: entry.filename, fileBytes: entry.bytes, startedAt: new Date(entry.at).toISOString() }, null, 2),
       ], { type: "application/json" }));
-      if (entry.hasImage) addDownload("Baixar imagem recebida", entry.filename, () => historyFiles.get(entry.id));
+      if (entry.hasFile || entry.hasImage) addDownload("Baixar arquivo recebido", entry.filename, () => historyFiles.get(entry.id));
       detail.append(actions, feedback); dialog.showModal();
     });
     list.append(button);

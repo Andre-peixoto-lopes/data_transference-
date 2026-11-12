@@ -8,6 +8,8 @@ export interface TransferEntry {
   bytes: number;
   at: number;
   report?: object;
+  hasFile?: boolean;
+  /** Image references saved by earlier versions. */
   hasImage?: boolean;
 }
 type TabStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -34,10 +36,10 @@ export class TemporaryHistory {
     this.storage?.removeItem(KEY);
     this.entries = [];
   }
-  add(kind: TransferKind, filename: string, bytes: number, report?: object, hasImage = false): TransferEntry {
+  add(kind: TransferKind, filename: string, bytes: number, report?: object, hasFile = false): TransferEntry {
     this.restore();
     const at = Date.now();
-    const entry = { id: crypto.randomUUID(), kind, filename, bytes, at, hasImage,
+    const entry = { id: crypto.randomUUID(), kind, filename, bytes, at, hasFile,
       report: report ?? { kind, fileName: filename, fileBytes: bytes, startedAt: new Date(at).toISOString() } };
     this.entries = [entry, ...this.entries].slice(0, 100);
     try { this.storage?.setItem(KEY, JSON.stringify(this.entries)); } catch { /* optional storage */ }
@@ -53,9 +55,9 @@ export async function clearHistory(): Promise<void> {
   transferHistory.clear();
   window.dispatchEvent(new Event("farol:history"));
 }
-export async function recordTransfer(kind: TransferKind, filename: string, bytes: number, report?: object, image?: Blob): Promise<void> {
-  const entry = transferHistory.add(kind, filename, bytes, report, !!image);
-  if (image) await historyFiles.put(entry.id, image);
+export async function recordTransfer(kind: TransferKind, filename: string, bytes: number, report?: object, file?: Blob): Promise<void> {
+  const entry = transferHistory.add(kind, filename, bytes, report, !!file);
+  if (file) await historyFiles.put(entry.id, file);
   window.dispatchEvent(new Event("farol:history"));
 }
 
