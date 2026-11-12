@@ -30,6 +30,7 @@ function decimal(value: number, digits: number): string {
 }
 
 const startButton = document.querySelector<HTMLButtonElement>("#start")!;
+const startLabel = startButton.querySelector<HTMLElement>("[data-start-label]")!;
 const cameraSelect = document.querySelector<HTMLSelectElement>("#cameraSelect")!;
 const reportButton = document.querySelector<HTMLButtonElement>("#report")!;
 const video = document.querySelector<HTMLVideoElement>("#camera")!;
@@ -417,6 +418,8 @@ async function finish(): Promise<void> {
   });
   resultBox.replaceChildren(verified, stats, download, " · ", reportLink);
   statusBox.textContent = `concluído • ${decimal(transferReport.goodputKBs, 1)} KB/s • ${decimal(transferReport.durationSeconds, 1)} s`;
+  startLabel.textContent = "Receber novamente";
+  startButton.disabled = false;
 }
 
 startButton.addEventListener("click", () => void start());
